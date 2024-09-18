@@ -1,16 +1,24 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { Routes, Route, useLocation } from 'react-router-dom';
+import Home from './pages/Home/Home';
+import Login from './pages/LoginSignup/Login';
+import SignUp from './pages/LoginSignup/SignUp';
+import Navbar from './components/Navbar';
+import Options from './pages/Options/Options';
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const location = useLocation();
 
   return (
     <>
-      <h1>
-        GoTrip
-      </h1>
+      <Navbar />
+      <Routes location={location} key={location.pathname}>
+        <Route index element={<Home />} />
+        <Route path='/iniciar' element={<Login />} />
+        <Route path='/registro' element={<SignUp />} />
+        <Route path='/opciones' element={<Options />} />
+      </Routes>
     </>
   )
 }
