@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import Options from './pages/Options/Options';
 import GoCalendar from './pages/Calendar/GoCalendar';
 import MyTrips from './pages/Trips/MyTrips';
+import AdminPanel from './pages/AdminPanel/AdminPanel';
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
         <Route path='/opciones' element={<Options />} />
         <Route path='/calendario' element={<GoCalendar />} />
         <Route path='/misviajes' element={<MyTrips />} /> 
+        <Route path='/admin' element={<AdminPanel />} />
       </Routes>
     </>
   )

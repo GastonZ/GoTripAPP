@@ -6,8 +6,6 @@ const MyTrips = () => {
     const savedTrips = localStorage.getItem('savedTrips');
     const myTrips = savedTrips ? JSON.parse(savedTrips) : [];
 
-    console.log(myTrips)
-
     return (
         <main className='flex flex-wrap justify-center items-center h-screen'>
             {
