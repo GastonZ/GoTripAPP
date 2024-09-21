@@ -17,7 +17,7 @@ export default {
           electricBlue: '#02FFFF'
         },
         background: {
-          navy: '#E8E3D4',
+          navy: '#EEEAE9',
           white: '#F6F6F6'
         }
       }

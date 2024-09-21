@@ -3,11 +3,14 @@ import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { icons } from '../assets'
 import { Link } from 'react-router-dom'
 
+const userData = JSON.parse(localStorage.getItem("userData"));
+
 const navigation = [
-  { name: 'Home', href: '/', current: false },
-  { name: 'Iniciar sesión', href: '/iniciar', current: false },
-  { name: 'Registrarse', href: '/registro', current: false },
+  { name: 'Home', href: '/', current: false, show: true },
+  { name: 'Iniciar sesión', href: '/iniciar', current: false, show: userData ? false : true },
+  { name: 'Opciones', href: '/opciones', current: false, show: userData ? true : false },
 ]
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -16,7 +19,7 @@ function classNames(...classes) {
 export default function Navbar() {
   return (
     <Disclosure as="nav" className="bg-primary-blue">
-      <div className="mx-auto px-2 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="mx-auto px-2 sm:px-6 lg:px-8">
         <div className="relative flex justify-between items-center h-16">
           <div className="left-0 absolute inset-y-0 flex items-center sm:hidden">
             {/* Mobile menu button*/}
@@ -44,7 +47,7 @@ export default function Navbar() {
                     aria-current={item.current ? 'page' : undefined}
                     className={classNames(
                       item.current ? 'bg-gray-900 text-white' : 'text-black transition-all hover:bg-gray-700 hover:text-white',
-                      'rounded-md px-3 py-2 text-sm uppercase font-semibold',
+                      'rounded-md px-3 py-2 text-sm uppercase font-semibold', item.show ? 'block' : 'hidden',
                     )}
                   >
                     {item.name}
@@ -63,19 +66,17 @@ export default function Navbar() {
               <BellIcon aria-hidden="true" className="w-6 h-6" />
             </button>
 
-            {/* Profile dropdown */}
             <Menu as="div" className="relative ml-3">
-              <div>
-                <MenuButton className="relative flex bg-gray-800 rounded-full focus:ring-offset-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-gray-800">
-                  <span className="absolute -inset-1.5" />
-                  <span className="sr-only">Abrir menú de usuario</span>
-                  <img
-                    alt=""
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                    className="rounded-full w-8 h-8"
-                  />
-                </MenuButton>
-              </div>
+              {userData && (
+                <div>
+                  <MenuButton className="relative flex bg-gray-800 rounded-full focus:ring-offset-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-gray-800">
+                    <span className="absolute -inset-1.5" />
+                    <span className="sr-only">Abrir menú de usuario</span>
+                    <p className='px-4 py-2 text-white'>{userData.name}</p>
+                  </MenuButton>
+                </div>
+              )}
+
               <MenuItems
                 transition
                 className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md ring-1 ring-black w-48 data-[closed]:transform origin-top-right transition focus:outline-none data-[closed]:scale-95 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
@@ -91,7 +92,7 @@ export default function Navbar() {
                   </a>
                 </MenuItem>
                 <MenuItem>
-                  <a href="#" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
+                  <a onClick={() => localStorage.removeItem('userData')} href="/" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
                     Cerrar sesión
                   </a>
                 </MenuItem>
