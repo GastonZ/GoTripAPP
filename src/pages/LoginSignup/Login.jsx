@@ -7,7 +7,7 @@ const Login = () => {
 
     const navigate = useNavigate();
 
-    const usersInfoArray = goTripData.users;
+    const usersInfoArray = JSON.parse(localStorage.getItem('users'));
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

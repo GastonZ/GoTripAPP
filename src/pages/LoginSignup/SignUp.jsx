@@ -1,8 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { icons } from '../../assets';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
+
+    const navigate = useNavigate();
+
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [surname, setSurname] = useState('');
+    const [dni, setDni] = useState('');
+    const [blind, setBlind] = useState(false)
+
+    const handleConfirmSignup = (e) => {
+        e.preventDefault()
+
+        const newUser = {
+            name, email, password, surname, dni, blind
+        };
+
+        const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
+
+        const updatedUsers = [...existingUsers, newUser];
+        localStorage.setItem('users', JSON.stringify(updatedUsers))
+
+        navigate('/iniciar')
+    }
+
     return (
         <main className='place-content-center grid bg-background-navy w-full h-screen' role="main">
             <div className='flex items-center bg-background-white pr-0 lg:pr-12 rounded-3xl'>
@@ -15,10 +41,11 @@ const SignUp = () => {
                     <img src={icons.gotripLogo} className='h-12 object-contain' alt="GoTrip logo" />
                     <span className='text-gray-700 text-xl' aria-live="polite">¡ Bienvenido !</span>
                     <h1 className='font-bold text-4xl text-primary-blue'>Registrarse</h1>
-                    <form className='flex flex-col gap-4' aria-labelledby="form-title">
+                    <form className='flex flex-col gap-4' aria-labelledby="form-title" onSubmit={handleConfirmSignup}>
                         <div className='flex flex-col gap-2'>
                             <label className='font-bold text-sm' htmlFor="email">Email</label>
                             <input
+                                onChange={(e) => setEmail(e.target.value)}
                                 id="email"
                                 className='focus:bg-primary-lightBlue p-[6px] rounded-lg transition-all outline-none'
                                 type="email"
@@ -31,6 +58,7 @@ const SignUp = () => {
                         <div className='flex flex-col gap-2'>
                             <label className='font-bold text-sm' htmlFor="password">Contraseña</label>
                             <input
+                                onChange={(e) => setPassword(e.target.value)}
                                 id="password"
                                 className='focus:bg-primary-lightBlue p-[6px] rounded-lg transition-all outline-none'
                                 type="password"
@@ -43,6 +71,7 @@ const SignUp = () => {
                         <div className='flex flex-col gap-2'>
                             <label className='font-bold text-sm' htmlFor="name">Nombre</label>
                             <input
+                                onChange={(e) => setName(e.target.value)}
                                 id="name"
                                 className='focus:bg-primary-lightBlue p-[6px] rounded-lg transition-all outline-none'
                                 type="text"
@@ -55,6 +84,7 @@ const SignUp = () => {
                         <div className='flex flex-col gap-2'>
                             <label className='font-bold text-sm' htmlFor="surname">Apellido</label>
                             <input
+                                onChange={(e) => setSurname(e.target.value)}
                                 id="surname"
                                 className='focus:bg-primary-lightBlue p-[6px] rounded-lg transition-all outline-none'
                                 type="text"
@@ -67,6 +97,7 @@ const SignUp = () => {
                         <div className='flex flex-col gap-2'>
                             <label className='font-bold text-sm' htmlFor="dni">DNI</label>
                             <input
+                                onChange={(e) => setDni(e.target.value)}
                                 id="dni"
                                 className='focus:bg-primary-lightBlue p-[6px] rounded-lg transition-all outline-none'
                                 type="text"
@@ -78,7 +109,7 @@ const SignUp = () => {
                         </div>
                         <div className='flex gap-2'>
                             <label htmlFor="">¿ Eres una persona no vidente ?</label>
-                            <input id='view' name='view' aria-label='¿ Eres una persona no vidente ?' type='checkbox' />
+                            <input onChange={(e) => setBlind(e.target.checked)} id='view' name='view' aria-label='¿ Eres una persona no vidente ?' type='checkbox' />
                         </div>
                         <button
                             className='bg-primary-blue hover:bg-primary-lightBlue mt-3 p-2 rounded-lg font-semibold text-black transition-all'
