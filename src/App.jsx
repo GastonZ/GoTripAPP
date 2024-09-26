@@ -8,6 +8,7 @@ import Options from './pages/Options/Options';
 import GoCalendar from './pages/Calendar/GoCalendar';
 import MyTrips from './pages/Trips/MyTrips';
 import AdminPanel from './pages/AdminPanel/AdminPanel';
+import Chatbot from './pages/Chatbot/Chatbot';
 
 function App() {
 
@@ -22,7 +23,8 @@ function App() {
         <Route path='/registro' element={<SignUp />} />
         <Route path='/opciones' element={<Options />} />
         <Route path='/calendario' element={<GoCalendar />} />
-        <Route path='/misviajes' element={<MyTrips />} /> 
+        <Route path='/misviajes' element={<MyTrips />} />
+        <Route path='/chatbot' element={<Chatbot />} /> 
         <Route path='/admin' element={<AdminPanel />} />
       </Routes>
     </>

@@ -29,7 +29,7 @@ const Options = () => {
         {
             text: 'Consultar a chatbot',
             icon: icons.botIcon,
-            href: '/calendario'
+            href: '/chatbot'
         },
     ]
 
