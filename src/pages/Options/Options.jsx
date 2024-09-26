@@ -2,34 +2,35 @@ import React from 'react'
 import ButtonOptions from '../../components/ButtonOptions'
 import { icons } from '../../assets'
 import { Link } from 'react-router-dom'
+import { Battery100Icon, ChatBubbleBottomCenterIcon, HeartIcon, MapIcon, PencilIcon } from '@heroicons/react/20/solid'
 
 const Options = () => {
 
     const buttonArray = [
         {
             text: 'Realizar plan de viaje',
-            icon: icons.startIcon,
+            icon: <PencilIcon className='w-10 h-10' />,
             href: '/calendario'
         },
-        {
+/*         {
             text: 'Puntos turisticos & eventos',
-            icon: icons.touristIcon,
+            icon: <MapIcon className='w-10 h-10' />,
             href: '/calendario'
-        },
+        }, */
         {
             text: 'Mis viajes',
-            icon: icons.tripIcon,
+            icon: <HeartIcon className='w-10 h-10' />,
             href: '/misviajes'
         },
         {
             text: 'Puntos de carga',
-            icon: icons.chargeIcon,
+            icon: <Battery100Icon className='w-10 h-10' />,
             href: '/calendario'
         },
         {
             text: 'Consultar a chatbot',
-            icon: icons.botIcon,
-            href: '/calendario'
+            icon: <ChatBubbleBottomCenterIcon className='w-10 h-10'/>,
+            href: '/chatbot'
         },
     ]
 
@@ -40,7 +41,7 @@ const Options = () => {
                 {buttonArray.map((x, index) => (
                     <Link key={index} to={x.href}>
                         <button className="flex flex-col justify-center items-center bg-primary-blue shadow-lg p-2 rounded-md w-[150px] h-[150px] text-white transform transition duration-300 hover:scale-105">
-                            <img src={x.icon} alt={x.text} className="bg-primary-blue mb-4 w-8 h-8" />
+                            {x.icon}
                             <span className="font-semibold text-center text-lg">{x.text}</span>
                         </button>
                     </Link>
