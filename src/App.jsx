@@ -11,6 +11,7 @@ import AdminPanel from './pages/AdminPanel/AdminPanel';
 import Chatbot from './pages/Chatbot/Chatbot';
 import ChargePoints from './pages/ChargePoints/ChargePoints';
 import PlaceDetails from './pages/PlaceDetails/PlaceDetails';
+import PointsAndEvents from './pages/TouristAndEvents/PointsAndEvents';
 
 function App() {
 
@@ -30,6 +31,7 @@ function App() {
         <Route path='/misviajes' element={<MyTrips />} />
         <Route path='/chatbot' element={<Chatbot />} /> 
         <Route path='/admin' element={<AdminPanel />} />
+        <Route path='/puntos-turisticos' element={<PointsAndEvents />} />
       </Routes>
     </>
   )

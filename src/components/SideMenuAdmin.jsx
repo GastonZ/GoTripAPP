@@ -5,9 +5,9 @@ const SideMenuAdmin = ({ selectedItem, setSelectedItem }) => {
         { text: "Gestión de usuarios", mode: "userManagement" },
         { text: "Gestión de puntos turísticos", mode: "touristSpots" },
         { text: "Gestión de categoría", mode: "categoryManagement" },
-/*         { text: "Gestión de carasterística", mode: "featureManagement" }, */
+        /*         { text: "Gestión de carasterística", mode: "featureManagement" }, */
         { text: "Gestión de evento", mode: "eventManagement" },
-/*         { text: "Ver modo turista", mode: "touristMode" } */
+        /*         { text: "Ver modo turista", mode: "touristMode" } */
     ];
 
     return (
@@ -24,7 +24,11 @@ const SideMenuAdmin = ({ selectedItem, setSelectedItem }) => {
                     </button>
                 ))}
             </div>
-            <h1 className='bg-black p-2 rounded-lg w-[150px] font-medium text-center text-white text-xl'>Cerrar sesión</h1>
+            <a onClick={() => localStorage.removeItem('userData')} href="/" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
+                <h1 className='bg-black p-2 rounded-lg w-[150px] font-medium text-center text-white text-xl'>
+                    Cerrar sesión
+                </h1>
+            </a>
         </div>
     );
 };

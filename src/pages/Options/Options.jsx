@@ -16,7 +16,7 @@ const Options = () => {
         {
             text: 'Puntos turisticos & eventos',
             icon: <MapIcon className='w-10 h-10' />,
-            href: '/calendario'
+            href: '/puntos-turisticos'
         },
         {
             text: 'Mis viajes',
@@ -44,7 +44,7 @@ const Options = () => {
         {
             text: 'Puntos turisticos & eventos',
             icon: <MapIcon className='w-10 h-10' />,
-            href: '/calendario'
+            href: '/puntos-turisticos'
         },
         {
             text: 'Consultar a chatbot',

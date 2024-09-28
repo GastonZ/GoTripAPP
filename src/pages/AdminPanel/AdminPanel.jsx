@@ -22,13 +22,73 @@ const AdminPanel = () => {
 
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
 
+  const [eventName, setEventName] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventInitDate, setEventInitDate] = useState('');
+  const [eventEndDate, setEventEndDate] = useState('');
+  const [eventCoordinates, setEventCoordinates] = useState('');
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
     const storedCategories = JSON.parse(localStorage.getItem('locationCategories')) || [];
+    const storedEvents = JSON.parse(localStorage.getItem('events')) || [];
+    setEvents(storedEvents);
     setCategories(storedCategories);
     setUsers(storedUsers);
   }, []);
+
+  const resetFormFields = () => {
+    setEventName('');
+    setEventDescription('');
+    setEventInitDate('');
+    setEventEndDate('');
+    setEventCoordinates('');
+  };
+
+  const handleAddNewEvent = () => {
+    if (eventName && eventDescription && eventInitDate && eventEndDate && eventCoordinates) {
+      const newEvent = {
+        name: eventName,
+        description: eventDescription,
+        initDate: new Date(eventInitDate).toISOString(),
+        endDate: new Date(eventEndDate).toISOString(),
+        coordinates: eventCoordinates,
+      };
+
+      const updatedEvents = [...events, newEvent];
+      localStorage.setItem('events', JSON.stringify(updatedEvents));
+      setEvents(updatedEvents);
+      setOpenModalEvent(false);
+      resetFormFields();
+    } else {
+      alert('Rellena todos los campos');
+    }
+  };
+
+  const handleEditEvent = (index) => {
+    const updatedEvent = { ...events[index] };
+    updatedEvent.name = prompt('Editar nombre de evento', updatedEvent.name) || updatedEvent.name;
+    updatedEvent.description = prompt('Editar descripción', updatedEvent.description) || updatedEvent.description;
+    updatedEvent.initDate = new Date(prompt('Editar fecha de inicio', updatedEvent.initDate) || updatedEvent.initDate).toISOString();
+    updatedEvent.endDate = new Date(prompt('Editar fecha de finalización', updatedEvent.endDate) || updatedEvent.endDate).toISOString();
+    updatedEvent.coordinates = prompt('Editar coordenadas', updatedEvent.coordinates) || updatedEvent.coordinates;
+
+    const updatedEvents = [...events];
+    updatedEvents[index] = updatedEvent;
+
+    localStorage.setItem('events', JSON.stringify(updatedEvents));
+    setEvents(updatedEvents);
+  };
+
+  const handleDeleteEvent = (index) => {
+    const confirmDelete = window.confirm('¿Estás seguro que quieres eliminar este evento?');
+    if (confirmDelete) {
+      const updatedEvents = events.filter((_, i) => i !== index);
+      localStorage.setItem('events', JSON.stringify(updatedEvents));
+      setEvents(updatedEvents);
+    }
+  };
 
   const handleAddCategory = () => {
     if (newCategory !== '') {
@@ -38,7 +98,7 @@ const AdminPanel = () => {
       setNewCategory('');
       setOpenModalCategory(false);
     } else {
-      console.log('Category name cannot be empty');
+      alert('Nombre de la categoria no puede estár vacio')
     }
   };
 
@@ -63,8 +123,6 @@ const AdminPanel = () => {
     localStorage.setItem('users', JSON.stringify(updatedUsers));
   };
 
-  /* Tourist spots */
-
   const handleAddPlace = () => {
     if (newPlaceName !== '' && newPlaceCoordinates !== '') {
       const updatedCategories = [...categories];
@@ -76,12 +134,12 @@ const AdminPanel = () => {
 
       setCategories(updatedCategories);
       localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-      
+
       setNewPlaceName('');
       setNewPlaceCoordinates('');
       setOpenModalPoints(false);
     } else {
-      console.log('Place name and coordinates cannot be empty');
+      alert('Nombre del lugar y las coordenadas no pueden estar vacias')
     }
   };
 
@@ -94,8 +152,8 @@ const AdminPanel = () => {
 
   const handleEditPlace = (catIndex, placeIndex) => {
     const placeToEdit = categories[catIndex].places[placeIndex];
-    const updatedPlaceName = prompt('Edit place name', placeToEdit.name);
-    const updatedPlaceCoordinates = prompt('Edit place coordinates', placeToEdit.coordinates);
+    const updatedPlaceName = prompt('Editar nombre del lugar', placeToEdit.name);
+    const updatedPlaceCoordinates = prompt('Editar coordenadas', placeToEdit.coordinates);
 
     if (updatedPlaceName && updatedPlaceCoordinates) {
       const updatedCategories = [...categories];
@@ -129,7 +187,7 @@ const AdminPanel = () => {
                     className='bg-red-500 px-4 py-2 rounded-md text-white'
                     onClick={() => deleteUser(index)}
                   >
-                    <TrashIcon className='w-6 h-6'/>
+                    <TrashIcon className='w-6 h-6' />
                   </button>
                 </div>
               ))}
@@ -167,13 +225,13 @@ const AdminPanel = () => {
                             className='bg-yellow-500 px-4 py-2 rounded-md text-white'
                             onClick={() => handleEditPlace(catIndex, placeIndex)}
                           >
-                            <PencilIcon className='w-6 h-6'/>
+                            <PencilIcon className='w-6 h-6' />
                           </button>
                           <button
                             className='bg-red-500 px-4 py-2 rounded-md text-white'
                             onClick={() => handleDeletePlace(catIndex, placeIndex)}
                           >
-                            <TrashIcon className='w-6 h-6'/>
+                            <TrashIcon className='w-6 h-6' />
                           </button>
                         </div>
                       </div>
@@ -264,13 +322,13 @@ const AdminPanel = () => {
                             setEditingCategoryName(x.category);
                           }}
                         >
-                          <PencilIcon className='w-6 h-6'/>
+                          <PencilIcon className='w-6 h-6' />
                         </button>
                         <button
                           className='bg-red-500 px-2 py-1 rounded-md text-white'
                           onClick={() => handleDeleteCategory(index)}
                         >
-                          <TrashIcon className='w-6 h-6'/>
+                          <TrashIcon className='w-6 h-6' />
                         </button>
                       </div>
                     </>
@@ -316,20 +374,84 @@ const AdminPanel = () => {
       case 'eventManagement':
         return <div className='w-full h-screen'>
           <div className='flex justify-between w-full'>
-            <h1 className='text-3xl'>
-              Gestion de eventos
-            </h1>
-            <button onClick={() => setOpenModalEvent(true)} className='bg-primary-blue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150'>Agregar evento</button>
+            <h1 className='text-3xl'>Gestión de eventos</h1>
+            <button
+              onClick={() => setOpenModalEvent(true)}
+              className='bg-primary-blue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150'
+            >
+              Agregar evento
+            </button>
           </div>
-          <div className='flex justify-center'>
 
+          {/* List of Events */}
+          <div className='flex flex-col gap-4 mt-4'>
+            {events.length > 0 ? (
+              events.map((event, index) => (
+                <div key={index} className='p-4 border rounded-lg'>
+                  <h2 className='font-semibold text-xl'>{event.name}</h2>
+                  <p>{event.description}</p>
+                  <p>
+                    <strong>Fecha de inicio:</strong> {new Date(event.initDate).toLocaleString()}
+                  </p>
+                  <p>
+                    <strong>Fecha de fin:</strong> {new Date(event.endDate).toLocaleString()}
+                  </p>
+                  <p>
+                    <strong>Coordenadas:</strong> {event.coordinates}
+                  </p>
+                  <div className='flex gap-4 mt-2'>
+                    <button onClick={() => handleEditEvent(index)} className='bg-yellow-500 px-4 py-2 rounded-md'>
+                      <PencilIcon className='w-6 h-6' />
+                    </button>
+                    <button onClick={() => handleDeleteEvent(index)} className='bg-red-500 px-4 py-2 rounded-md'>
+                      <TrashIcon className='w-6 h-6' />
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No hay eventos agregados aún</p>
+            )}
           </div>
           <ModalCustom radius={10} modalState={openModalEvent} handleModalClose={() => setOpenModalEvent(false)}>
             <div className='flex flex-col gap-3 p-6'>
-              <input placeholder='nombre' className='p-4 rounded-md outline-none' />
-              <input placeholder='nombre' className='p-4 rounded-md outline-none' />
-              <input placeholder='nombre' className='p-4 rounded-md outline-none' />
-              <input placeholder='nombre' className='p-4 rounded-md outline-none' />
+              <input
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                placeholder='Nombre del evento'
+                className='p-4 rounded-md outline-none'
+              />
+              <input
+                value={eventDescription}
+                onChange={(e) => setEventDescription(e.target.value)}
+                placeholder='Descripción del evento'
+                className='p-4 rounded-md outline-none'
+              />
+              <input
+                value={eventInitDate}
+                onChange={(e) => setEventInitDate(e.target.value)}
+                placeholder='Fecha de inicio (YYYY-MM-DD)'
+                type='date'
+                className='p-4 rounded-md outline-none'
+              />
+              <input
+                value={eventEndDate}
+                onChange={(e) => setEventEndDate(e.target.value)}
+                placeholder='Fecha de finalización (YYYY-MM-DD)'
+                type='date'
+                className='p-4 rounded-md outline-none'
+              />
+              <input
+                value={eventCoordinates}
+                onChange={(e) => setEventCoordinates(e.target.value)}
+                placeholder='Coordenadas (lat, long)'
+                className='p-4 rounded-md outline-none'
+              />
+              <button
+                onClick={handleAddNewEvent}
+                className='bg-primary-darkBlue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150'>
+                Guardar evento
+              </button>
             </div>
           </ModalCustom>
         </div>
