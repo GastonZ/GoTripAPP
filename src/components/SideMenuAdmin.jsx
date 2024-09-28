@@ -5,9 +5,9 @@ const SideMenuAdmin = ({ selectedItem, setSelectedItem }) => {
         { text: "Gestión de usuarios", mode: "userManagement" },
         { text: "Gestión de puntos turísticos", mode: "touristSpots" },
         { text: "Gestión de categoría", mode: "categoryManagement" },
-        { text: "Gestión de carasterística", mode: "featureManagement" },
+/*         { text: "Gestión de carasterística", mode: "featureManagement" }, */
         { text: "Gestión de evento", mode: "eventManagement" },
-        { text: "Ver modo turista", mode: "touristMode" }
+/*         { text: "Ver modo turista", mode: "touristMode" } */
     ];
 
     return (

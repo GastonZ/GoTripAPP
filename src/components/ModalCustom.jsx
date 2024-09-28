@@ -15,7 +15,7 @@ const modalVariants = {
   }
 };
 
-const ModalCustom = ({ heigth, width, radius, children, modalState, handleModalClose, backgroundColor, hideCloseIcon, overflow }) => {
+const ModalCustom = ({ heigth, width, radius, children, modalState, handleModalClose, backgroundColor, hideCloseIcon, overflow, introText }) => {
 
 
   const customModalStyles = {
@@ -58,6 +58,7 @@ const ModalCustom = ({ heigth, width, radius, children, modalState, handleModalC
         animate={modalState ? "visible" : "hidden"}
       >
         <div className='px-6 py-4'>
+          <p className='font-semibold text-2xl text-white'>{introText}</p>
           {
             hideCloseIcon ?
               <></>

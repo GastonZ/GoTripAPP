@@ -5,7 +5,7 @@ const MyTripsCard = ({ initDate, endDate, travelPoints }) => {
   const endDateFormatted = new Date(endDate).toLocaleDateString();
 
   return (
-    <div className="bg-primary-blue shadow-md m-2 p-4 border rounded min-w-[300px] min-h-[300px]">
+    <div className="bg-primary-blue shadow-md mb-2 p-4 border rounded min-w-[300px] h-[300px] overflow-auto">
       <h3 className="font-bold text-lg text-white">Trip Dates</h3>
       <p>
         From: {startDate} <br />

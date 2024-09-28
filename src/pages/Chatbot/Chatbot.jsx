@@ -10,7 +10,7 @@ const Chatbot = () => {
   const sendMessage = async (userMessage) => {
     setLoading(true);
     
-    const siteSpecificPrompt = "Eres un asistente virtual diseñado para responder únicamente preguntas sobre este sitio web en español. Responde de manera breve, clara y útil solo sobre el contenido del sitio.";
+    const siteSpecificPrompt = "Eres un asistente virtual diseñado para responder únicamente preguntas sobre este sitio web en español. Responde de manera breve, clara y útil solo sobre el contenido del sitio, la principal funcionalidad del sitio es crear una plan de viaje, para hacerlo debes indicarles a los usuarios que deben ir a la seccion Opciones, luego seleccionar Realizar plan de viaje y seguir los pasos que se les indique.";
 
     
     const conversationHistory = conversation.map(
