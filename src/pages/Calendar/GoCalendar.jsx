@@ -7,9 +7,9 @@ import { ArrowLeftCircleIcon } from '@heroicons/react/24/outline';
 
 const GoCalendar = () => {
   const navigate = useNavigate();
-  
+
   const [value, setValue] = useState([new Date(), new Date()]);
-  const [steps, setSteps] = useState(0); 
+  const [steps, setSteps] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
   const [iframeUrl, setIframeUrl] = useState(''); // For the Google Maps iframe URL
 
@@ -78,9 +78,12 @@ const GoCalendar = () => {
   }, [steps, selectedItems]);
 
   return (
-    <main className='flex justify-center items-center gap-4 bg-background-navy p-4 min-h-screen'>
+    <main className='flex justify-center relative items-center gap-4 bg-background-navy p-4 min-h-screen'>
+      <div className='absolute top-0 left-0 p-10'>
+        <ArrowLeftCircleIcon className='cursor-pointer' onClick={() => navigate('/opciones')} height={24} width={24} />
+      </div>
       {steps === 0 && (
-        <>
+        <div className='flex flex-wrap lg:flex-nowrap gap-4 pt-10'>
           <div className='flex flex-col items-start gap-4 w-[400px]'>
             <h1 className='text-4xl text-gray-800'>Seleccionar fechas</h1>
             <div className='flex flex-col gap-1'>
@@ -103,14 +106,14 @@ const GoCalendar = () => {
               selectRange={true}
             />
           </div>
-        </>
+        </div>
       )}
 
       {steps === 1 && (
         <>
           <div className="flex flex-col justify-center items-center">
             <div className="flex flex-wrap space-x-6 p-6 rounded-lg">
-            <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24}/>
+              <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
               <div className="flex-grow bg-gray-200 p-4 rounded-lg w-[350px] overflow-y-auto">
                 <h2 className="mb-4 font-semibold text-xl">Categorías</h2>
                 <ul>
@@ -153,7 +156,7 @@ const GoCalendar = () => {
         <>
           <div className='flex flex-wrap gap-4'>
             <div className='flex flex-col gap-6'>
-            <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24}/>
+              <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
               <h2 className='text-3xl'>Destinos Seleccionados</h2>
               <div className='flex flex-col gap-4 bg-primary-lightBlue p-8 rounded-md'>
                 {selectedItems.map(item => (
@@ -175,7 +178,7 @@ const GoCalendar = () => {
         <>
           <div className='flex flex-wrap gap-4'>
             <div className='flex flex-col gap-6'>
-            <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24}/>
+              <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
               <h2 className='text-3xl'>Recorrido generado</h2>
               <div className='flex flex-col gap-4 bg-primary-lightBlue p-8 rounded-md'>
                 {selectedItems.map(item => (

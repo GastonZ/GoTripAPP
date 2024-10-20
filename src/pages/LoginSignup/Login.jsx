@@ -32,7 +32,7 @@ const Login = () => {
             }))
             window.location = "/opciones"
         } else {
-            setErrorMessage('Invalid email or password.');
+            setErrorMessage('Mail o contraseña no válido');
         }
     };
 
