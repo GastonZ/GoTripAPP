@@ -3,6 +3,8 @@ import globeCouple from './gotrip_login_img.png';
 import tucuman from './gotrip_tucuman.png';
 import cabildo from './gotrip_optionwall.jpg';
 
+import casaHistorica from './gotrip_cabildo.png';
+
 import botIcon from './bot_icon.png';
 import chargeIcon from './charge_icon.png';
 import startIcon from './start_icon.png';
@@ -18,7 +20,8 @@ export const icons = {
     chargeIcon,
     startIcon,
     touristIcon,
-    tripIcon
+    tripIcon,
+    casaHistorica
 }
 
 const users = [

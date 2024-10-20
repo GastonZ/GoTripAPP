@@ -82,14 +82,11 @@ export default function Navbar() {
                 className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md ring-1 ring-black w-48 data-[closed]:transform origin-top-right transition focus:outline-none data-[closed]:scale-95 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
               >
                 <MenuItem>
-                  <a href="#" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                    Tu perfil
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a href="#" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                    Ajustes
-                  </a>
+                  <Link to={'/admin'}>
+                    <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
+                      Panel admin
+                    </p>
+                  </Link>
                 </MenuItem>
                 <MenuItem>
                   <a onClick={() => localStorage.removeItem('userData')} href="/" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">

@@ -8,6 +8,10 @@ import Options from './pages/Options/Options';
 import GoCalendar from './pages/Calendar/GoCalendar';
 import MyTrips from './pages/Trips/MyTrips';
 import AdminPanel from './pages/AdminPanel/AdminPanel';
+import Chatbot from './pages/Chatbot/Chatbot';
+import ChargePoints from './pages/ChargePoints/ChargePoints';
+import PlaceDetails from './pages/PlaceDetails/PlaceDetails';
+import PointsAndEvents from './pages/TouristAndEvents/PointsAndEvents';
 
 function App() {
 
@@ -22,8 +26,12 @@ function App() {
         <Route path='/registro' element={<SignUp />} />
         <Route path='/opciones' element={<Options />} />
         <Route path='/calendario' element={<GoCalendar />} />
-        <Route path='/misviajes' element={<MyTrips />} /> 
+        <Route path='/puntos-de-carga' element={<ChargePoints />} />
+        <Route path="/place-details/:name" element={<PlaceDetails />} />
+        <Route path='/misviajes' element={<MyTrips />} />
+        <Route path='/chatbot' element={<Chatbot />} /> 
         <Route path='/admin' element={<AdminPanel />} />
+        <Route path='/puntos-turisticos' element={<PointsAndEvents />} />
       </Routes>
     </>
   )
