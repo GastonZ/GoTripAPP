@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { icons } from '../../assets'
 import { Link } from 'react-router-dom'
 
@@ -116,31 +116,37 @@ const Home = () => {
     { "email": "david@gmail.com", "password": "test1234", "name": "David", "surname": "Martinez", "dni": "40000000", "blind": true }
   ]
 
-  const currentUserBlind = JSON.parse(localStorage.getItem('userData')) || ''
+  const [currentUserBlind, setCurrentUserBlind] = useState('');
 
   useEffect(() => {
-    if (JSON.parse(localStorage.getItem('locationCategories'))) {
-      console.log('Already exists a locations array')
-    } else {
+    const storedLocations = JSON.parse(localStorage.getItem('locationCategories'));
+    if (!storedLocations) {
       localStorage.setItem('locationCategories', JSON.stringify(locationCategories));
+      console.log('Location categories initialized');
+    } else {
+      console.log('Location categories already exist');
     }
 
-    if (JSON.parse(localStorage.getItem('users')).length > 0) {
-      console.log('Already exists an users array')
-    } else {
+    const storedUsers = JSON.parse(localStorage.getItem('users'));
+    if (!storedUsers || storedUsers.length === 0) {
       localStorage.setItem('users', JSON.stringify(userData));
+      console.log('User data initialized');
+    } else {
+      console.log('User data already exists');
     }
-  }, [])
+
+    const currentUserData = JSON.parse(localStorage.getItem('userData')) || {};
+    setCurrentUserBlind(currentUserData.blind);
+  }, []);
 
   return (
-    currentUserBlind.blind ?
+    currentUserBlind ?
       <main className='flex flex-col justify-center items-center gap-10 p-4 w-full h-screen'>
-        <h1 className='text-7xl text-center'>Bienvenidos a <br />
-          TUCUMÁN</h1>
-          <div className='flex flex-col gap-4'>
-            <button className='bg-primary-blue px-6 py-4 rounded-2xl text-2xl text-white'>Iniciar sesión</button>
-            <button className='bg-primary-blue px-6 py-4 rounded-2xl text-2xl text-white'>Regístrate</button>
-          </div>
+        <h1 className='text-7xl text-center'>Bienvenidos a <br /> TUCUMÁN</h1>
+        <div className='flex flex-col gap-4'>
+          <button className='bg-primary-blue px-6 py-4 rounded-2xl text-2xl text-white'>Iniciar sesión</button>
+          <button className='bg-primary-blue px-6 py-4 rounded-2xl text-2xl text-white'>Regístrate</button>
+        </div>
       </main>
       :
       <main className='flex justify-center items-center bg-background-navy p-8 h-screen'>
@@ -154,15 +160,12 @@ const Home = () => {
           <Link to={'/iniciar'}>
             <button className='bg-primary-blue hover:bg-primary-lightBlue px-7 py-2 rounded-2xl font-medium text-3xl transition-all'>Iniciar sesión</button>
           </Link>
-          <p className='text-2xl text-center'>
-            ¿No te encuentras registrado?
-            <Link to={'/registro'} className='hover:text-primary-darkBlue transition cursor-pointer'>
-              <strong className='text-primary-darkBlue'> Ingresa aquí.</strong>
-            </Link>
+          <p className='text-2xl'>
+            {/* Additional content */}
           </p>
         </section>
       </main>
-  )
+  );
 }
 
-export default Home
+export default Home;
