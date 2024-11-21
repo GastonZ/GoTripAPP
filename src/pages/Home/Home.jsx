@@ -121,12 +121,14 @@ const Home = () => {
   useEffect(() => {
     if (JSON.parse(localStorage.getItem('locationCategories'))) {
       console.log('Already exists a locations array')
+
     } else {
       localStorage.setItem('locationCategories', JSON.stringify(locationCategories));
     }
 
-    if (JSON.parse(localStorage.getItem('users')).length > 0) {
+    if (JSON.parse(localStorage.getItem('users'))) {
       console.log('Already exists an users array')
+
     } else {
       localStorage.setItem('users', JSON.stringify(userData));
     }
