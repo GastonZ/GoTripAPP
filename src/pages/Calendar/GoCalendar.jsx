@@ -122,27 +122,30 @@ const GoCalendar = () => {
       </div>
       <div className='flex justify-center gap-4 bg-background-navy p-4 min-h-[90vh]'>
         {steps === 0 && (
-          <div className='flex items-center'>
-            <div className='flex flex-col justify-center items-start gap-4 w-[400px]'>
-              <div className='flex flex-col gap-1'>
-                <p>Fecha de inicio</p>
-                <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
-                  {value[0].getDate()}/{value[0].getMonth()}/{value[0].getFullYear()}
-                </span>
-                <p>Fecha de finalización</p>
-                <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
-                  {value[1].getDate()}/{value[1].getMonth()}/{value[1].getFullYear()}
-                </span>
+          <div>
+            <ArrowLeftCircleIcon className='cursor-pointer' onClick={() => navigate('/opciones')} height={24} width={24} />
+            <div className='flex items-center'>
+              <div className='flex flex-col justify-center items-start gap-4 w-[400px]'>
+                <div className='flex flex-col gap-1'>
+                  <p>Fecha de inicio</p>
+                  <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
+                    {value[0].getDate()}/{value[0].getMonth()}/{value[0].getFullYear()}
+                  </span>
+                  <p>Fecha de finalización</p>
+                  <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
+                    {value[1].getDate()}/{value[1].getMonth()}/{value[1].getFullYear()}
+                  </span>
+                </div>
+                <ButtonOptions onClick={handleNextStep} text={'Siguiente'} />
               </div>
-              <ButtonOptions onClick={handleNextStep} text={'Siguiente'} />
-            </div>
-            <div className='flex justify-center bg-primary-blue p-6 border-none rounded-xl h-[500px]'>
-              <Calendar
-                className='bg-primary-lightBlue border-none rounded-xl w-full transition-all'
-                onChange={setValue}
-                value={value}
-                selectRange={true}
-              />
+              <div className='flex justify-center bg-primary-blue p-6 border-none rounded-xl h-[500px]'>
+                <Calendar
+                  className='bg-primary-lightBlue border-none rounded-xl w-full transition-all'
+                  onChange={setValue}
+                  value={value}
+                  selectRange={true}
+                />
+              </div>
             </div>
           </div>
         )}
