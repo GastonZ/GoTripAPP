@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
 const PlaceDetails = () => {
-  const { name } = useParams(); // Get place name from URL params
+  const { name } = useParams();
   const [placeDetails, setPlaceDetails] = useState(null);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const PlaceDetails = () => {
         });
         
         if (response.data && response.data.candidates && response.data.candidates.length > 0) {
-          setPlaceDetails(response.data.candidates[0]); // Assuming the first match is the correct place
+          setPlaceDetails(response.data.candidates[0]);
         } else {
           console.error('No place details found.');
         }
