@@ -17,7 +17,12 @@ const PlaceDetails = () => {
             key: 'AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k',
           },
         });
-        setPlaceDetails(response.data.candidates[0]); // Assuming the first match is the correct place
+        
+        if (response.data && response.data.candidates && response.data.candidates.length > 0) {
+          setPlaceDetails(response.data.candidates[0]); // Assuming the first match is the correct place
+        } else {
+          console.error('No place details found.');
+        }
       } catch (error) {
         console.error('Error fetching place details:', error);
       }
@@ -35,7 +40,7 @@ const PlaceDetails = () => {
       <h1 className="font-bold text-2xl">{placeDetails.name}</h1>
       <p>Address: {placeDetails.formatted_address}</p>
       <p>Rating: {placeDetails.rating}</p>
-      {placeDetails.opening_hours && (
+      {placeDetails.opening_hours && placeDetails.opening_hours.weekday_text && (
         <div>
           <h3>Opening Hours:</h3>
           <ul>
@@ -51,7 +56,7 @@ const PlaceDetails = () => {
         style={{ border: 0 }}
         loading="lazy"
         allowFullScreen
-        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k&q=place_id:${placeDetails.geometry.location.lat},${placeDetails.geometry.location.lng}`}
+        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k&q=${placeDetails.geometry.location.lat},${placeDetails.geometry.location.lng}`}
       ></iframe>
     </div>
   );
