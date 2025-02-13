@@ -1,0 +1,8 @@
+/* Archivo: src/styles/Mapa.css o en App.css */
+.leaflet-container {
+    width: 100%;
+    height: 400px; /* Ajusta la altura del mapa */
+    border-radius: 10px; /* Opcional, bordes redondeados */
+    z-index: 0; /* Asegura que el mapa no se sobreponga a otros elementos */
+  }
+  

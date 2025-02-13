@@ -153,7 +153,7 @@ const GoCalendar = () => {
               <div className='flex justify-between items-center py-6 w-full'>
                 <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
                 <div className="mt-6">
-                  <ButtonOptions onClick={handleNextStep} text={'Ver puntos seleccionados'} />
+                  <ButtonOptions onClick={handleNextStep} text={'Confirmar puntos seleccionados'} />
                 </div>
               </div>
               <div className="flex flex-wrap justify-around gap-4 rounded-lg">
@@ -197,7 +197,7 @@ const GoCalendar = () => {
                 </div>
               </div>
               <div className='flex flex-col justify-center gap-4'>
-                <ButtonOptions onClick={handlePreviusStep} text={'Agregar otro punto turístico'} />
+                {/* <ButtonOptions onClick={handlePreviusStep} text={'Gestionar puntos turístico'} /> */}
                 <ButtonOptions onClick={handleNextStep} text={'Confirmar plan de viaje'} />
               </div>
             </div>
