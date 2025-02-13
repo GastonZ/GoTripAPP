@@ -55,7 +55,7 @@ const Options = () => {
 
     return (
         currentUserBlind.blind ?
-            <main className='flex flex-wrap justify-center items-center gap-10 h-screen'>
+            <main className='flex flex-wrap justify-center items-center gap-10 min-h-screen'>
                 <div className="absolute flex flex-wrap justify-center gap-8">
                     {buttonArrayBlind.map((x, index) => (
                         <Link key={index} to={x.href}>
@@ -68,9 +68,9 @@ const Options = () => {
                 </div>
             </main>
             :
-            <main className="flex flex-col items-center bg-background-navy h-screen">
-                <img className="relative p-8 rounded-lg w-full h-[700px] object-cover" src={icons.cabildo} alt="" />
-                <div className="top-2/3 absolute flex flex-wrap justify-center gap-8">
+            <main className="flex flex-col items-center bg-background-navy min-h-screen">
+                <img className="relative p-8 rounded-lg w-full h-[300px] lg:h-[700px] object-cover" src={icons.cabildo} alt="" />
+                <div className="top-[20%] lg:top-2/3 absolute flex flex-wrap justify-center gap-8">
                     {buttonArray.map((x, index) => (
                         <Link key={index} to={x.href}>
                             <button className="flex flex-col justify-center items-center bg-primary-blue shadow-lg p-2 rounded-md w-[150px] h-[150px] text-white transform transition duration-300 hover:scale-105">
@@ -81,7 +81,6 @@ const Options = () => {
                     ))}
                 </div>
             </main>
-
     )
 }
 
