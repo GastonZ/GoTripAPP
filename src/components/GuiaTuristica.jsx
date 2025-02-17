@@ -66,14 +66,14 @@ export default function GuiaTuristica() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
-    recognition.continuous = true; // ✅ Se mantiene activo después de responder
+    recognition.continuous = true;
     recognition.interimResults = false;
 
     recognition.onstart = () => setEscuchando(true);
     recognition.onend = () => setEscuchando(false);
 
     recognition.onresult = (event) => {
-      if (hablando) return; // ✅ No interrumpe si la IA está hablando
+      if (hablando) return;
 
       const mensaje = event.results[event.results.length - 1][0].transcript.toLowerCase();
       console.log(`🎤 Usuario dijo: ${mensaje}`);
@@ -91,10 +91,10 @@ export default function GuiaTuristica() {
 
     setHablando(true);
     const synth = window.speechSynthesis;
-    synth.cancel(); // Evita interrupciones previas
+    synth.cancel();
 
     const textoLimpio = texto.replace(/\*\*/g, "").trim();
-    const fragmentos = textoLimpio.match(/.{1,200}(\s|$)/g); // ✅ Divide en partes de 200 caracteres
+    const fragmentos = textoLimpio.match(/.{1,200}(\s|$)/g);
 
     let indice = 0;
     const reproducirFragmento = () => {
@@ -124,6 +124,12 @@ export default function GuiaTuristica() {
     };
 
     reproducirFragmento();
+  };
+
+  // 🚨 Función para el botón de emergencia
+  const activarEmergencia = () => {
+    alert("⚠️ Emergencia activada. Se está enviando una alerta de ayuda.");
+    // Aquí podrías implementar lógica para enviar una alerta real (ejemplo: SMS, WhatsApp, llamada, etc.)
   };
 
   return (
@@ -161,11 +167,20 @@ export default function GuiaTuristica() {
           </div>
         )}
 
+        {/* Botón GUIAME */}
         <button
           onClick={iniciarReconocimiento}
           className={`w-full ${escuchando ? "bg-red-500" : "bg-green-500"} text-white p-2 mt-2 rounded`}
         >
           🎤 {escuchando ? "Escuchando..." : "Guíame"}
+        </button>
+
+        {/* 🚨 Botón de emergencia */}
+        <button
+          onClick={activarEmergencia}
+          className="w-full bg-red-600 text-white p-2 mt-4 rounded font-bold"
+        >
+          🚨 EMERGENCIA
         </button>
       </div>
     </div>
