@@ -236,7 +236,7 @@ const GoCalendar = () => {
                 </div>
               </div>
               <div className='flex flex-col justify-center gap-4'>
-                <ButtonOptions onClick={handlePreviusStep} text={'Agregar otro punto turístico'} />
+                {/* <ButtonOptions onClick={handlePreviusStep} text={'Gestionar puntos turístico'} /> */}
                 <ButtonOptions onClick={handleNextStep} text={'Confirmar plan de viaje'} />
               </div>
             </div>

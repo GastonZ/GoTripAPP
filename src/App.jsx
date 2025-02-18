@@ -12,6 +12,8 @@ import Chatbot from './pages/Chatbot/Chatbot';
 import ChargePoints from './pages/ChargePoints/ChargePoints';
 import PlaceDetails from './pages/PlaceDetails/PlaceDetails';
 import PointsAndEvents from './pages/TouristAndEvents/PointsAndEvents';
+import GuiaTuristica from './components/GuiaTuristica';
+
 
 function App() {
 
@@ -32,6 +34,7 @@ function App() {
         <Route path='/chatbot' element={<Chatbot />} /> 
         <Route path='/admin' element={<AdminPanel />} />
         <Route path='/puntos-turisticos' element={<PointsAndEvents />} />
+        <Route path='/guia-turistica' element={<GuiaTuristica />} />
       </Routes>
     </>
   )
