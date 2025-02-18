@@ -5,14 +5,12 @@ const SideMenuAdmin = ({ selectedItem, setSelectedItem }) => {
         { text: "Gestión de usuarios", mode: "userManagement" },
         { text: "Gestión de puntos turísticos", mode: "touristSpots" },
         { text: "Gestión de categoría", mode: "categoryManagement" },
-        /*         { text: "Gestión de carasterística", mode: "featureManagement" }, */
         { text: "Gestión de evento", mode: "eventManagement" },
-        /*         { text: "Ver modo turista", mode: "touristMode" } */
     ];
 
     return (
         <div className='flex flex-col items-center bg-primary-blue py-4 w-full md:w-[400px] md:h-screen'>
-            <h1 className='p-2 border-b border-b-slate-900 w-full font-medium text-3xl text-black text-left'>Administrador</h1>
+            <h1 className='p-2 border-b border-b-slate-900 w-full font-medium text-black text-3xl text-left'>Administrador</h1>
             <div className='flex flex-col gap-3 my-8 pl-4 w-full'>
                 {adminItems.map((item) => (
                     <button
@@ -25,7 +23,7 @@ const SideMenuAdmin = ({ selectedItem, setSelectedItem }) => {
                 ))}
             </div>
             <a onClick={() => localStorage.removeItem('userData')} href="/" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                <h1 className='bg-black p-2 rounded-lg w-[150px] font-medium text-center text-white text-xl'>
+                <h1 className='bg-black p-2 rounded-lg w-[150px] font-medium text-white text-xl text-center'>
                     Cerrar sesión
                 </h1>
             </a>

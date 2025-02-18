@@ -43,3 +43,26 @@ export const getAllUsuarios = () => handleRequest(apiGoTrip.get(`/Usuarios/GetAl
 export const createUsuario = (data) => handleRequest(apiGoTrip.post(`/Usuarios`, data));
 export const activateUsuario = (id) => handleRequest(apiGoTrip.put(`/Usuarios/${id}/activate`));
 export const inactivateUsuario = (id) => handleRequest(apiGoTrip.put(`/Usuarios/${id}/inactivate`));
+
+export const createCategoria = (data) => handleRequest(apiGoTrip.post(`/Categoria/alta`, data));
+export const updateCategoria = (id, data) => handleRequest(apiGoTrip.put(`/Categoria/update/${id}`, data));
+export const deleteCategoria = (id) => handleRequest(apiGoTrip.delete(`/Categoria/delete/${id}`));
+export const getActiveCategorias = () => handleRequest(apiGoTrip.get(`/Categoria/active`));
+export const getCategoria = (id) => handleRequest(apiGoTrip.get(`/Categoria/${id}`));
+export const updateCategoriaById = (id, data) => handleRequest(apiGoTrip.put(`/Categoria/${id}`, data));
+export const createCategoriaGeneral = (data) => handleRequest(apiGoTrip.post(`/Categoria`, data));
+export const activateCategoria = (id) => handleRequest(apiGoTrip.put(`/Categoria/${id}/activate`));
+export const inactivateCategoria = (id) => handleRequest(apiGoTrip.put(`/Categoria/${id}/inactivate`));
+
+export const loginUsuario = async (username, password) => {
+  try {
+    const response = await apiGoTrip.post(`/Auth/login`, null, {
+      params: { username, password }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error en el login:", error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+

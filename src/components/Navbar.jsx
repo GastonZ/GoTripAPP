@@ -1,122 +1,140 @@
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { icons } from '../assets'
-import { Link } from 'react-router-dom'
-
-const userData = JSON.parse(localStorage.getItem("userData"));
-
-const navigation = [
-  { name: 'Home', href: '/', current: false, show: true },
-  { name: 'Iniciar sesión', href: '/iniciar', current: false, show: userData ? false : true },
-  { name: 'Opciones', href: '/opciones', current: false, show: userData ? true : false },
-]
-
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+import { useState, useEffect } from "react";
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { icons } from "../assets";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
+  // Estados para manejar el usuario autenticado
+  const [userName, setUserName] = useState(localStorage.getItem("userName"));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!userName);
+
+  // Efecto para actualizar cuando cambian los datos en localStorage
+  useEffect(() => {
+    setUserName(localStorage.getItem("userName"));
+    setIsAuthenticated(!!localStorage.getItem("userName"));
+  }, []);
+
+  // Menú de navegación con visibilidad según autenticación
+  const navigation = [
+    { name: "Home", href: "/", current: false, show: true },
+    { name: "Iniciar sesión", href: "/iniciar", current: false, show: !isAuthenticated },
+    { name: "Opciones", href: "/opciones", current: false, show: isAuthenticated },
+  ];
+
+  // Función para cerrar sesión
+  const handleLogout = () => {
+    localStorage.removeItem("userName");
+    localStorage.removeItem("isNoVidente");
+    setUserName(null);
+    setIsAuthenticated(false);
+    window.location.href = "/"; // Redirigir a home después de logout
+  };
+
+  function classNames(...classes) {
+    return classes.filter(Boolean).join(" ");
+  }
+
   return (
     <Disclosure as="nav" className="bg-primary-blue">
       <div className="mx-auto px-2 sm:px-6 lg:px-8">
         <div className="relative flex justify-between items-center h-16">
-          <div className="left-0 absolute inset-y-0 flex items-center sm:hidden">
-            {/* Mobile menu button*/}
-            <DisclosureButton className="inline-flex relative justify-center items-center hover:bg-gray-700 p-2 rounded-md focus:ring-2 focus:ring-white focus:ring-inset text-gray-400 hover:text-white group focus:outline-none">
-              <span className="absolute -inset-0.5" />
+          {/* Botón menú móvil */}
+          <div className="sm:hidden left-0 absolute inset-y-0 flex items-center">
+            <DisclosureButton className="group inline-flex relative justify-center items-center hover:bg-gray-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-inset text-gray-400 hover:text-white">
               <span className="sr-only">Abrir menú principal</span>
-              <Bars3Icon aria-hidden="true" className="block group-data-[open]:hidden w-6 h-6" />
+              <Bars3Icon aria-hidden="true" className="group-data-[open]:hidden block w-6 h-6" />
               <XMarkIcon aria-hidden="true" className="group-data-[open]:block hidden w-6 h-6" />
             </DisclosureButton>
           </div>
+
+          {/* Logo y navegación */}
           <div className="flex flex-1 justify-center sm:justify-start items-center sm:items-stretch">
             <div className="flex flex-shrink-0 items-center">
-              <img
-                alt="Go Trip Logo"
-                src={icons.gotripLogo}
-                className="w-auto h-8"
-              />
+              <img alt="Go Trip Logo" src={icons.gotripLogo} className="w-auto h-8" />
             </div>
-            <div className="sm:block hidden sm:ml-6">
+            <div className="hidden sm:block sm:ml-6">
               <div className="flex space-x-4">
                 {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    aria-current={item.current ? 'page' : undefined}
-                    className={classNames(
-                      item.current ? 'bg-gray-900 text-white' : 'text-black transition-all hover:bg-gray-700 hover:text-white',
-                      'rounded-md px-3 py-2 text-sm uppercase font-semibold', item.show ? 'block' : 'hidden',
-                    )}
-                  >
-                    {item.name}
-                  </Link>
+                  item.show && (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      aria-current={item.current ? "page" : undefined}
+                      className={classNames(
+                        item.current ? "bg-gray-900 text-white" : "text-black transition-all hover:bg-gray-700 hover:text-white",
+                        "rounded-md px-3 py-2 text-sm uppercase font-semibold"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  )
                 ))}
               </div>
             </div>
           </div>
+
+          {/* Notificaciones y Menú Usuario */}
           <div className="right-0 sm:static absolute inset-y-0 sm:inset-auto flex items-center sm:ml-6 pr-2 sm:pr-0">
-            <button
-              type="button"
-              className="relative bg-gray-800 p-1 rounded-full focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-gray-400 hover:text-white focus:outline-none"
-            >
-              <span className="absolute -inset-1.5" />
+            <button type="button" className="relative bg-gray-800 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-gray-400 hover:text-white">
               <span className="sr-only">Ver notificaciones</span>
               <BellIcon aria-hidden="true" className="w-6 h-6" />
             </button>
 
-            <Menu as="div" className="relative ml-3">
-              {userData && (
+            {/* Menú usuario solo si está autenticado */}
+            {isAuthenticated && (
+              <Menu as="div" className="relative ml-3">
                 <div>
-                  <MenuButton className="relative flex bg-gray-800 rounded-full focus:ring-offset-2 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-gray-800">
-                    <span className="absolute -inset-1.5" />
+                  <MenuButton className="relative flex bg-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-sm">
                     <span className="sr-only">Abrir menú de usuario</span>
-                    <p className='px-4 py-2 text-white'>{userData.name}</p>
+                    <p className="px-4 py-2 text-white">{userName}</p>
                   </MenuButton>
                 </div>
-              )}
 
-              <MenuItems
-                transition
-                className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md ring-1 ring-black w-48 data-[closed]:transform origin-top-right transition focus:outline-none data-[closed]:scale-95 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-              >
-                <MenuItem>
-                  <Link to={'/admin'}>
-                    <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                      Panel admin
-                    </p>
-                  </Link>
-                </MenuItem>
-                <MenuItem>
-                  <a onClick={() => localStorage.removeItem('userData')} href="/" className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                    Cerrar sesión
-                  </a>
-                </MenuItem>
-              </MenuItems>
-            </Menu>
+                <MenuItems
+                  transition
+                  className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md focus:outline-none ring-1 ring-black w-48 data-[closed]:scale-95 origin-top-right transition data-[enter]:duration-100 data-[leave]:duration-75 data-[leave]:ease-in data-[enter]:ease-out data-[closed]:transform"
+                >
+                  <MenuItem>
+                    <Link to={"/admin"}>
+                      <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
+                        Panel admin
+                      </p>
+                    </Link>
+                  </MenuItem>
+                  <MenuItem>
+                    <button onClick={handleLogout} className="block data-[focus]:bg-gray-100 px-4 py-2 w-full text-black text-sm text-left">
+                      Cerrar sesión
+                    </button>
+                  </MenuItem>
+                </MenuItems>
+              </Menu>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Menú móvil */}
       <DisclosurePanel className="sm:hidden">
         <div className="space-y-1 px-2 pt-2 pb-3">
           {navigation.map((item) => (
-            <DisclosureButton
-              key={item.name}
-              as="a"
-              href={item.href}
-              aria-current={item.current ? 'page' : undefined}
-              className={classNames(
-                item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                'block rounded-md px-3 py-2 text-base font-medium',
-              )}
-            >
-              {item.name}
-            </DisclosureButton>
+            item.show && (
+              <DisclosureButton
+                key={item.name}
+                as="a"
+                href={item.href}
+                aria-current={item.current ? "page" : undefined}
+                className={classNames(
+                  item.current ? "bg-gray-900 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                  "block rounded-md px-3 py-2 text-base font-medium"
+                )}
+              >
+                {item.name}
+              </DisclosureButton>
+            )
           ))}
         </div>
       </DisclosurePanel>
     </Disclosure>
-  )
+  );
 }

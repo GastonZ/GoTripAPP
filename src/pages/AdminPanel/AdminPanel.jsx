@@ -2,10 +2,170 @@ import React, { useState, useEffect } from 'react';
 import SideMenuAdmin from '../../components/SideMenuAdmin';
 import ModalCustom from '../../components/ModalCustom';
 import { PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
+import { getAllUsuarios, inactivateUsuario, getAllPuntosTuristicos, createPuntoTuristico, updatePuntoTuristico, inactivatePuntoTuristico, getActiveCategorias, createCategoria, updateCategoria, inactivateCategoria } from '../../service/goTripService';
 
 const AdminPanel = () => {
   const [selectedItem, setSelectedItem] = useState('userManagement');
+
   const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetchUsuarios();
+  }, []);
+
+  const fetchUsuarios = async () => {
+    try {
+      const data = await getAllUsuarios();
+      if (data) setUsers(data);
+    } catch (error) {
+      console.error("Error obteniendo usuarios:", error);
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    const confirmDelete = window.confirm("¿Estás seguro que desea inhabilitar este usuario?");
+    if (confirmDelete) {
+      try {
+        await inactivateUsuario(id);
+        fetchUsuarios(); // Recargar la lista después de borrar
+      } catch (error) {
+        console.error("Error eliminando usuario:", error);
+      }
+    }
+  };
+
+  const [puntosTuristicos, setPuntosTuristicos] = useState([]);
+  const [newPlaceName, setNewPlaceName] = useState("");
+  const [newPlaceCoordinates, setNewPlaceCoordinates] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedUbicacionId, setSelectedUbicacionId] = useState("");
+  const [imagePath, setImagePath] = useState("");
+  const [comentarios, setComentarios] = useState([]);
+  const [categories, setCategories] = useState([]); // Cargar desde API
+
+  useEffect(() => {
+    fetchPuntosTuristicos();
+    fetchCategorias();
+  }, []);
+
+  const fetchPuntosTuristicos = async () => {
+    try {
+      const data = await getAllPuntosTuristicos();
+      if (data) setPuntosTuristicos(data);
+    } catch (error) {
+      console.error("Error obteniendo puntos turísticos:", error);
+    }
+  };
+
+  const handleAddPuntoTuristico = async () => {
+    if (!newPlaceName || !selectedCategoryId || !selectedUbicacionId) {
+      alert("Por favor, completa todos los campos obligatorios");
+      return;
+    }
+  
+    const nuevoPunto = {
+      descripcion: newPlaceName,
+      categoriaId: parseInt(selectedCategoryId),
+      ubicacionId: parseInt(selectedUbicacionId),
+      pathImagen: imagePath || "", 
+      comentarios: comentarios ? comentarios.split(",").map(c => c.trim()) : []
+    };
+  
+    console.log("Enviando punto turístico:", nuevoPunto);
+  
+    try {
+      const response = await createPuntoTuristico(nuevoPunto);
+      console.log("Respuesta API:", response);
+  
+      fetchPuntosTuristicos();
+      setOpenModalPoints(false);
+      setNewPlaceName("");
+      setSelectedCategoryId("");
+      setSelectedUbicacionId("");
+      setImagePath("");
+      setComentarios("");
+    } catch (error) {
+      console.error("Error creando punto turístico:", error);
+    }
+  };
+  
+
+  const handleEditPuntoTuristico = async (punto) => {
+    const nuevaDescripcion = prompt("Editar nombre del punto turístico:", punto.descripcion);
+    if (!nuevaDescripcion) return;
+
+    try {
+      await updatePuntoTuristico(punto.id, { ...punto, descripcion: nuevaDescripcion });
+      fetchPuntosTuristicos();
+    } catch (error) {
+      console.error("Error editando punto turístico:", error);
+    }
+  };
+
+  const handleDeletePuntoTuristico = async (id) => {
+    if (window.confirm("¿Seguro que quieres eliminar este punto turístico?")) {
+      try {
+        await inactivatePuntoTuristico(id);
+        fetchPuntosTuristicos();
+      } catch (error) {
+        console.error("Error eliminando punto turístico:", error);
+      }
+    }
+  };
+
+  const [categorias, setCategorias] = useState([]);
+
+useEffect(() => {
+  fetchCategorias();
+}, []);
+
+const fetchCategorias = async () => {
+  try {
+    const data = await getActiveCategorias();
+    if (data) setCategorias(data);
+  } catch (error) {
+    console.error("Error obteniendo categorías:", error);
+  }
+};
+
+const handleAddCategoria = async () => {
+  if (!newCategory) {
+    alert("El nombre de la categoría no puede estar vacío");
+    return;
+  }
+
+  try {
+    await createCategoria({ descripcion: newCategory });
+    fetchCategorias();
+    setNewCategory("");
+    setOpenModalCategory(false);
+  } catch (error) {
+    console.error("Error creando categoría:", error);
+  }
+};
+
+const handleEditCategoria = async (id) => {
+  const nuevoNombre = prompt("Editar nombre de la categoría:");
+  if (!nuevoNombre) return;
+
+  try {
+    await updateCategoria(id, { descripcion: nuevoNombre });
+    fetchCategorias();
+  } catch (error) {
+    console.error("Error editando categoría:", error);
+  }
+};
+
+const handleDeleteCategoria = async (id) => {
+  if (window.confirm("¿Seguro que quieres eliminar esta categoría?")) {
+    try {
+      await inactivateCategoria(id);
+      fetchCategorias();
+    } catch (error) {
+      console.error("Error eliminando categoría:", error);
+    }
+  }
+};
 
   const [openModalPoints, setOpenModalPoints] = useState(false);
   const [openModalCategory, setOpenModalCategory] = useState(false);
@@ -13,14 +173,6 @@ const AdminPanel = () => {
   const [openModalEvent, setOpenModalEvent] = useState(false);
 
   const [newCategory, setNewCategory] = useState('');
-  const [newPlaceName, setNewPlaceName] = useState('');
-  const [newPlaceCoordinates, setNewPlaceCoordinates] = useState('');
-
-  const [categories, setCategories] = useState([]);
-  const [editingCategoryIndex, setEditingCategoryIndex] = useState(null);
-  const [editingCategoryName, setEditingCategoryName] = useState('');
-
-  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
 
   const [eventName, setEventName] = useState('');
   const [eventDescription, setEventDescription] = useState('');
@@ -29,328 +181,169 @@ const AdminPanel = () => {
   const [eventCoordinates, setEventCoordinates] = useState('');
   const [events, setEvents] = useState([]);
 
-  useEffect(() => {
-    const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
-    const storedCategories = JSON.parse(localStorage.getItem('locationCategories')) || [];
-    const storedEvents = JSON.parse(localStorage.getItem('events')) || [];
-    setEvents(storedEvents);
-    setCategories(storedCategories);
-    setUsers(storedUsers);
-  }, []);
-
-  const resetFormFields = () => {
-    setEventName('');
-    setEventDescription('');
-    setEventInitDate('');
-    setEventEndDate('');
-    setEventCoordinates('');
-  };
-
-  const handleAddNewEvent = () => {
-    if (eventName && eventDescription && eventInitDate && eventEndDate && eventCoordinates) {
-      const newEvent = {
-        name: eventName,
-        description: eventDescription,
-        initDate: new Date(eventInitDate).toISOString(),
-        endDate: new Date(eventEndDate).toISOString(),
-        coordinates: eventCoordinates,
-      };
-
-      const updatedEvents = [...events, newEvent];
-      localStorage.setItem('events', JSON.stringify(updatedEvents));
-      setEvents(updatedEvents);
-      setOpenModalEvent(false);
-      resetFormFields();
-    } else {
-      alert('Rellena todos los campos');
-    }
-  };
-
-  const handleEditEvent = (index) => {
-    const updatedEvent = { ...events[index] };
-    updatedEvent.name = prompt('Editar nombre de evento', updatedEvent.name) || updatedEvent.name;
-    updatedEvent.description = prompt('Editar descripción', updatedEvent.description) || updatedEvent.description;
-    updatedEvent.initDate = new Date(prompt('Editar fecha de inicio', updatedEvent.initDate) || updatedEvent.initDate).toISOString();
-    updatedEvent.endDate = new Date(prompt('Editar fecha de finalización', updatedEvent.endDate) || updatedEvent.endDate).toISOString();
-    updatedEvent.coordinates = prompt('Editar coordenadas', updatedEvent.coordinates) || updatedEvent.coordinates;
-
-    const updatedEvents = [...events];
-    updatedEvents[index] = updatedEvent;
-
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
-    setEvents(updatedEvents);
-  };
-
-  const handleDeleteEvent = (index) => {
-    const confirmDelete = window.confirm('¿Estás seguro que quieres eliminar este evento?');
-    if (confirmDelete) {
-      const updatedEvents = events.filter((_, i) => i !== index);
-      localStorage.setItem('events', JSON.stringify(updatedEvents));
-      setEvents(updatedEvents);
-    }
-  };
-
-  const handleAddCategory = () => {
-    if (newCategory !== '') {
-      const updatedCategories = [...categories, { category: newCategory, places: [] }];
-      localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-      setCategories(updatedCategories);
-      setNewCategory('');
-      setOpenModalCategory(false);
-    } else {
-      alert('Nombre de la categoria no puede estár vacio')
-    }
-  };
-
-  const handleDeleteCategory = (index) => {
-    const updatedCategories = categories.filter((_, i) => i !== index);
-    localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-    setCategories(updatedCategories);
-  };
-
-  const handleEditCategory = (index) => {
-    const updatedCategories = [...categories];
-    updatedCategories[index].category = editingCategoryName;
-    localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-    setCategories(updatedCategories);
-    setEditingCategoryIndex(null);
-    setEditingCategoryName('');
-  };
-
-  const deleteUser = (indexToDelete) => {
-    const updatedUsers = users.filter((_, index) => index !== indexToDelete);
-    setUsers(updatedUsers);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-  };
-
-  const handleAddPlace = () => {
-    if (newPlaceName !== '' && newPlaceCoordinates !== '') {
-      const updatedCategories = [...categories];
-
-      updatedCategories[selectedCategoryIndex].places.push({
-        name: newPlaceName,
-        coordinates: newPlaceCoordinates,
-      });
-
-      setCategories(updatedCategories);
-      localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-
-      setNewPlaceName('');
-      setNewPlaceCoordinates('');
-      setOpenModalPoints(false);
-    } else {
-      alert('Nombre del lugar y las coordenadas no pueden estar vacias')
-    }
-  };
-
-  const handleDeletePlace = (catIndex, placeIndex) => {
-    const updatedCategories = [...categories];
-    updatedCategories[catIndex].places.splice(placeIndex, 1);
-    setCategories(updatedCategories);
-    localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-  };
-
-  const handleEditPlace = (catIndex, placeIndex) => {
-    const placeToEdit = categories[catIndex].places[placeIndex];
-    const updatedPlaceName = prompt('Editar nombre del lugar', placeToEdit.name);
-    const updatedPlaceCoordinates = prompt('Editar coordenadas', placeToEdit.coordinates);
-
-    if (updatedPlaceName && updatedPlaceCoordinates) {
-      const updatedCategories = [...categories];
-      updatedCategories[catIndex].places[placeIndex] = {
-        name: updatedPlaceName,
-        coordinates: updatedPlaceCoordinates,
-      };
-      setCategories(updatedCategories);
-      localStorage.setItem('locationCategories', JSON.stringify(updatedCategories));
-    }
-  };
 
   const renderContent = () => {
     switch (selectedItem) {
       case 'userManagement':
         return (
-          <div className='w-full h-screen'>
-            <h1 className='mb-10 text-3xl'>Gestión de usuarios</h1>
-            <div className='flex flex-col gap-4'>
-              {users.map((user, index) => (
+          <div className="w-full h-screen">
+            <h1 className="mb-10 text-3xl">Gestión de usuarios</h1>
+            <div className="flex flex-col gap-4">
+              {users.map((user) => (
                 <div
-                  id='user_container'
-                  key={index}
-                  className='flex justify-between items-center gap-4 bg-primary-lightBlue p-4 rounded-xl w-max'
+                  key={user.id}
+                  className="flex justify-between items-center gap-4 bg-primary-lightBlue p-4 rounded-xl w-max"
                 >
-                  <div className='flex gap-4'>
-                    <p className='font-semibold text-xl'>{user.name}</p>
-                    <p className='font-semibold text-xl'>{user.surname}</p>
-                  </div>
-                  <button
-                    className='bg-red-500 px-4 py-2 rounded-md text-white'
-                    onClick={() => deleteUser(index)}
-                  >
-                    <TrashIcon className='w-6 h-6' />
+                  <p className="font-semibold text-xl">{user.userName}</p>
+                  <button className="bg-red-500 px-4 py-2 rounded-md text-white" onClick={() => handleDeleteUser(user.id)}>
+                    <TrashIcon className="w-6 h-6" />
                   </button>
                 </div>
               ))}
             </div>
           </div>
         );
-      case 'touristSpots':
+      case "touristSpots":
         return (
-          <div className='w-full h-screen'>
-            <div className='flex justify-between mb-6 w-full'>
-              <h1 className='text-3xl'>Gestión de puntos turísticos</h1>
+          <div className="w-full h-screen">
+            <div className="flex justify-between mb-6 w-full">
+              <h1 className="text-3xl">Gestión de puntos turísticos</h1>
               <button
                 onClick={() => setOpenModalPoints(true)}
-                className='bg-primary-blue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150'
+                className="bg-primary-blue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150"
               >
                 Agregar punto turístico
               </button>
             </div>
-            <div className='flex flex-col gap-6'>
-              {categories.map((category, catIndex) => (
-                <div key={catIndex} className='bg-gray-100 p-4 rounded-lg'>
-                  <h2 className='font-semibold text-2xl'>{category.category}</h2>
-                  <div className='flex flex-col gap-4 mt-4'>
-                    {category.places.map((place, placeIndex) => (
-                      <div
-                        key={placeIndex}
-                        className='flex justify-between items-center bg-primary-lightBlue p-4 rounded-lg'
-                      >
-                        <div className='flex flex-col'>
-                          <span className='font-semibold text-lg'>{place.name}</span>
-                          <span className='text-gray-600'>{place.coordinates}</span>
-                        </div>
-                        <div className='flex gap-2'>
-                          <button
-                            className='bg-yellow-500 px-4 py-2 rounded-md text-white'
-                            onClick={() => handleEditPlace(catIndex, placeIndex)}
-                          >
-                            <PencilIcon className='w-6 h-6' />
-                          </button>
-                          <button
-                            className='bg-red-500 px-4 py-2 rounded-md text-white'
-                            onClick={() => handleDeletePlace(catIndex, placeIndex)}
-                          >
-                            <TrashIcon className='w-6 h-6' />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+            <div className="flex flex-col gap-6">
+              {puntosTuristicos.map((punto) => (
+                <div key={punto.id} className="bg-gray-100 p-4 rounded-lg">
+                  <h2 className="font-semibold text-2xl">{punto.descripcion}</h2>
+                  <p className="text-gray-600"><strong>Categoría:</strong> {punto.categoria?.descripcion || "Sin categoría"}</p>
+                  <p className="text-gray-600"><strong>Ubicación ID:</strong> {punto.ubicacionId}</p>
+                  <p className="text-gray-600"><strong>Comentarios:</strong> {punto.comentarios?.length || 0}</p>
+                  {punto.pathImagen && (
+                    <img src={punto.pathImagen} alt="Imagen punto turístico" className="mt-2 rounded-lg w-full" />
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <button className="bg-yellow-500 px-4 py-2 rounded-md text-white" onClick={() => handleEditPuntoTuristico(punto)}>
+                      <PencilIcon className="w-6 h-6" />
+                    </button>
+                    <button className="bg-red-500 px-4 py-2 rounded-md text-white" onClick={() => handleDeletePuntoTuristico(punto.id)}>
+                      <TrashIcon className="w-6 h-6" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-            <ModalCustom
-              introText={'Agregar nuevo punto turistico'}
-              radius={10}
-              modalState={openModalPoints}
-              handleModalClose={() => setOpenModalPoints(false)}
-            >
-              <div className='flex flex-col gap-3 p-6'>
+
+            {/* Modal para agregar punto turístico */}
+            <ModalCustom introText="Agregar nuevo punto turístico" radius={10} modalState={openModalPoints} handleModalClose={() => setOpenModalPoints(false)}>
+              <div className="flex flex-col gap-3 p-6">
                 <input
-                  placeholder='Nombre del lugar'
-                  className='p-4 rounded-md outline-none'
+                  placeholder="Nombre del lugar"
+                  className="p-4 rounded-md outline-none"
                   value={newPlaceName}
                   onChange={(e) => setNewPlaceName(e.target.value)}
                 />
                 <input
-                  placeholder='Coordenadas del lugar'
-                  className='p-4 rounded-md outline-none'
+                  placeholder="Coordenadas del lugar"
+                  className="p-4 rounded-md outline-none"
                   value={newPlaceCoordinates}
                   onChange={(e) => setNewPlaceCoordinates(e.target.value)}
                 />
-
+                <input
+                  placeholder="URL de la imagen (opcional)"
+                  className="p-4 rounded-md outline-none"
+                  value={imagePath}
+                  onChange={(e) => setImagePath(e.target.value)}
+                />
+                <input
+                  placeholder="Comentarios separados por comas (opcional)"
+                  className="p-4 rounded-md outline-none"
+                  value={comentarios}
+                  onChange={(e) => setComentarios(e.target.value)}
+                />
                 <select
-                  value={selectedCategoryIndex}
-                  onChange={(e) => setSelectedCategoryIndex(parseInt(e.target.value))}
-                  className='p-4 rounded-md outline-none'
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                  className="p-4 rounded-md outline-none"
                 >
-                  {categories.map((category, index) => (
-                    <option key={index} value={index}>
-                      {category.category}
+                  <option value="">Seleccionar categoría</option>
+                  {categorias.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.descripcion}
                     </option>
                   ))}
                 </select>
-
-                <button
-                  onClick={handleAddPlace}
-                  className='bg-primary-darkBlue mt-4 p-2 rounded-lg text-white'
+                <select
+                  value={selectedUbicacionId}
+                  onChange={(e) => setSelectedUbicacionId(e.target.value)}
+                  className="p-4 rounded-md outline-none"
                 >
+                  <option value="">Seleccionar ubicación</option>
+                  {/* Aquí deberías cargar las ubicaciones desde la API */}
+                  <option value="1">Ubicación 1</option>
+                  <option value="2">Ubicación 2</option>
+                </select>
+
+                <button onClick={handleAddPuntoTuristico} className="bg-primary-darkBlue mt-4 p-2 rounded-lg text-white">
                   Agregar
                 </button>
               </div>
             </ModalCustom>
           </div>
         );
-      case 'categoryManagement':
-        return (
-          <div className='w-full h-screen'>
-            <div className='flex justify-between mb-6 w-full'>
-              <h1 className='text-3xl'>Gestión de categorías</h1>
-              <button
-                onClick={() => setOpenModalCategory(true)}
-                className='bg-primary-blue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150'
-              >
-                Agregar categoría
-              </button>
-            </div>
-            <div className='flex flex-col justify-center gap-4'>
-              {categories.map((x, index) => (
-                <div key={index} className='flex justify-between items-center bg-primary-blue p-4 rounded-lg w-max'>
-                  {editingCategoryIndex === index ? (
-                    <>
-                      <input
-                        className='p-2 rounded-md outline-none'
-                        value={editingCategoryName}
-                        onChange={(e) => setEditingCategoryName(e.target.value)}
-                      />
+        case "categoryManagement":
+          return (
+            <div className="w-full h-screen">
+              <div className="flex justify-between mb-6 w-full">
+                <h1 className="text-3xl">Gestión de categorías</h1>
+                <button
+                  onClick={() => setOpenModalCategory(true)}
+                  className="bg-primary-blue px-6 py-2 rounded-2xl text-white hover:scale-105 duration-150"
+                >
+                  Agregar categoría
+                </button>
+              </div>
+              <div className="flex flex-col justify-center gap-4">
+                {categorias.map((category) => (
+                  <div key={category.id} className="flex justify-between items-center bg-primary-blue p-4 rounded-lg w-max">
+                    <span className="text-white text-2xl">{category.descripcion}</span>
+                    <div className="flex pl-4">
                       <button
-                        className='bg-green-500 ml-2 px-4 py-2 rounded-md text-white'
-                        onClick={() => handleEditCategory(index)}
+                        className="bg-yellow-500 mr-2 px-2 py-1 rounded-md text-white"
+                        onClick={() => handleEditCategoria(category)}
                       >
-                        Save
+                        <PencilIcon className="w-6 h-6" />
                       </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className='text-2xl text-white'>{x.category}</span>
-                      <div className='flex pl-4'>
-                        <button
-                          className='bg-yellow-500 mr-2 px-2 py-1 rounded-md text-white'
-                          onClick={() => {
-                            setEditingCategoryIndex(index);
-                            setEditingCategoryName(x.category);
-                          }}
-                        >
-                          <PencilIcon className='w-6 h-6' />
-                        </button>
-                        <button
-                          className='bg-red-500 px-2 py-1 rounded-md text-white'
-                          onClick={() => handleDeleteCategory(index)}
-                        >
-                          <TrashIcon className='w-6 h-6' />
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-            <ModalCustom introText={'Agregar nueva categoría'} radius={10} modalState={openModalCategory} handleModalClose={() => setOpenModalCategory(false)}>
-              <div className='flex flex-col gap-3 p-6'>
-                <input
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  value={newCategory}
-                  placeholder='Nombre categoría'
-                  className='p-4 rounded-md outline-none'
-                />
-                <button onClick={handleAddCategory} className='bg-primary-darkBlue mt-4 p-2 rounded-lg text-white'>
-                  Agregar
-                </button>
+                      <button
+                        className="bg-red-500 px-2 py-1 rounded-md text-white"
+                        onClick={() => handleDeleteCategoria(category.id)}
+                      >
+                        <TrashIcon className="w-6 h-6" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </ModalCustom>
-          </div>
-        );
+        
+              {/* Modal para agregar categoría */}
+              <ModalCustom introText="Agregar nueva categoría" radius={10} modalState={openModalCategory} handleModalClose={() => setOpenModalCategory(false)}>
+                <div className="flex flex-col gap-3 p-6">
+                  <input
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    value={newCategory}
+                    placeholder="Nombre categoría"
+                    className="p-4 rounded-md outline-none"
+                  />
+                  <button onClick={handleAddCategoria} className="bg-primary-darkBlue mt-4 p-2 rounded-lg text-white">
+                    Agregar
+                  </button>
+                </div>
+              </ModalCustom>
+            </div>
+          );
       case 'featureManagement':
         return <div className='w-full h-screen'>
           <div className='flex justify-between w-full'>
