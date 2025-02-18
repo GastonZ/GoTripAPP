@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken } from '../../utils/utils';
 
 const apiGoTrip = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://localhost:7070/api/',
   headers: {
     'Content-Type': 'application/json',
   },
