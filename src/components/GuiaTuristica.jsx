@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { io } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 
@@ -8,13 +7,15 @@ const socket = io("http://localhost:3001");
 export default function GuiaTuristica() {
   const [ubicacion, setUbicacion] = useState(null);
   const [destino, setDestino] = useState(null);
-  const [modoDesarrollador, setModoDesarrollador] = useState(false);
+  const [ruta, setRuta] = useState([]);
   const [escuchando, setEscuchando] = useState(false);
   const [hablando, setHablando] = useState(false);
   const [respuestaIA, setRespuestaIA] = useState("");
+  const [buscandoDestino, setBuscandoDestino] = useState(false);
+  const [enRecorrido, setEnRecorrido] = useState(false);
 
   useEffect(() => {
-    if ("geolocation" in navigator && !modoDesarrollador) {
+    if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
         (position) => {
           const nuevaUbicacion = {
@@ -28,36 +29,29 @@ export default function GuiaTuristica() {
         { enableHighAccuracy: true }
       );
     }
-  }, [modoDesarrollador]);
+  }, []);
 
   useEffect(() => {
-    socket.on("destino", (data) => setDestino(data));
     socket.on("respuesta", (data) => {
       console.log("📢 Respuesta de la IA recibida:", data.respuesta);
       setRespuestaIA(data.respuesta);
       hablar(data.respuesta);
+
+      if (data.destino) setDestino(data.destino);
+      if (data.ruta) setRuta(data.ruta);
+
+      if (data.inicio_recorrido) {
+        setEnRecorrido(true);
+      }
     });
 
     return () => {
-      socket.off("destino");
       socket.off("respuesta");
     };
   }, []);
 
-  const ManejadorMapa = () => {
-    useMapEvents({
-      click(e) {
-        if (modoDesarrollador) {
-          const nuevaUbicacion = { latitud: e.latlng.lat, longitud: e.latlng.lng };
-          setUbicacion(nuevaUbicacion);
-          socket.emit("ubicacion_manual", nuevaUbicacion);
-        }
-      },
-    });
-    return null;
-  };
-
-  const iniciarReconocimiento = () => {
+  // 🎤 Función para encontrar destino por voz
+  const encontrarDestino = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Tu navegador no soporta reconocimiento de voz.");
@@ -69,115 +63,157 @@ export default function GuiaTuristica() {
     recognition.continuous = true;
     recognition.interimResults = false;
 
-    recognition.onstart = () => setEscuchando(true);
-    recognition.onend = () => setEscuchando(false);
+    recognition.onstart = () => {
+      setBuscandoDestino(true);
+      hablar("Por favor, dime a dónde quieres ir.");
+    };
+
+    recognition.onend = () => setBuscandoDestino(false);
 
     recognition.onresult = (event) => {
-      if (hablando) return;
-
       const mensaje = event.results[event.results.length - 1][0].transcript.toLowerCase();
       console.log(`🎤 Usuario dijo: ${mensaje}`);
-      socket.emit("mensaje", { mensaje, ubicacion });
+      socket.emit("encontrar_destino", { mensaje });
     };
 
     recognition.start();
   };
 
+  // 🚶 Función para iniciar el recorrido
+  const comenzarRecorrido = () => {
+    if (!destino || ruta.length === 0) {
+      hablar("Debes encontrar un destino antes de iniciar el recorrido.");
+      return;
+    }
+
+    setEnRecorrido(true);
+    socket.emit("comenzar_recorrido");
+  };
+
+  // 🎤 Función para escuchar comandos del usuario
+  const escucharComando = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Tu navegador no soporta reconocimiento de voz.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "es-ES";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setEscuchando(true);
+    recognition.onend = () => setEscuchando(false);
+
+    recognition.onresult = (event) => {
+      const mensaje = event.results[0][0].transcript.toLowerCase();
+      console.log(`🎤 Usuario dijo: ${mensaje}`);
+
+      if (mensaje.includes("siguiente paso")) {
+        socket.emit("siguiente_paso");
+      } else if (
+        mensaje.includes("repetir pasó") ||
+        mensaje.includes("repite el paso") ||
+        mensaje.includes("volver a decir el paso") ||
+        mensaje.includes("dime otra vez el paso") ||
+        mensaje.includes("repetí") ||
+        mensaje.includes("repítelo")
+      ) {
+        socket.emit("repetir_paso");
+      } else if (
+        mensaje.includes("qué sabes del destino") ||
+        mensaje.includes("háblame del destino") ||
+        mensaje.includes("qué podrías decirme del destino") ||
+        mensaje.includes("quiero saber más sobre este lugar") ||
+        mensaje.includes("dame detalles del destino") ||
+        mensaje.includes("qué me puedes contar del destino")
+      ) {
+        socket.emit("detalles_destino");
+      } else {
+        hablar("No entendí el comando. Puedes decir 'siguiente paso', 'repetir paso' o preguntar sobre el destino.");
+      }
+    };
+
+    recognition.start();
+  };
+
+  // 🔊 Función para que la IA hable
   const hablar = (texto) => {
     if (!window.speechSynthesis) {
-      console.error("❌ La síntesis de voz no está disponible en este navegador.");
-      return;
+        console.error("❌ La síntesis de voz no está disponible en este navegador.");
+        return;
     }
 
     setHablando(true);
     const synth = window.speechSynthesis;
-    synth.cancel();
+    synth.cancel(); // Cancelar cualquier audio en progreso
 
-    const textoLimpio = texto.replace(/\*\*/g, "").trim();
-    const fragmentos = textoLimpio.match(/.{1,200}(\s|$)/g);
+    const fragmentos = texto.match(/.{1,200}(\s|$)/g); // Divide el texto en partes de hasta 200 caracteres sin cortar palabras
 
-    let indice = 0;
-    const reproducirFragmento = () => {
-      if (indice < fragmentos.length) {
-        const utterance = new SpeechSynthesisUtterance(fragmentos[indice]);
+    const hablarFragmento = (index) => {
+        if (index >= fragmentos.length) {
+            setHablando(false);
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(fragmentos[index]);
         utterance.lang = "es-ES";
         utterance.rate = 1;
         utterance.pitch = 1;
         utterance.volume = 1;
 
-        utterance.onerror = (e) => {
-          console.error("❌ Error en síntesis de voz:", e);
-          synth.cancel();
-        };
-
-        utterance.onend = () => {
-          indice++;
-          if (indice < fragmentos.length) {
-            setTimeout(reproducirFragmento, 500);
-          } else {
-            setHablando(false);
-          }
-        };
+        utterance.onend = () => hablarFragmento(index + 1); // Llamar al siguiente fragmento después de que termine el actual
+        utterance.onerror = (e) => console.error("❌ Error en síntesis de voz:", e);
 
         synth.speak(utterance);
-      }
     };
 
-    reproducirFragmento();
-  };
+    hablarFragmento(0); // Iniciar la lectura desde el primer fragmento
+};
 
-  // 🚨 Función para el botón de emergencia
-  const activarEmergencia = () => {
-    alert("⚠️ Emergencia activada. Se está enviando una alerta de ayuda.");
-    // Aquí podrías implementar lógica para enviar una alerta real (ejemplo: SMS, WhatsApp, llamada, etc.)
-  };
 
   return (
     <div className="flex flex-col items-center p-6 gap-6">
       <div className="w-full max-w-md p-4 text-center border rounded shadow">
         <h2 className="text-xl font-bold">Guía Turística por IA</h2>
 
-        <button
-          onClick={() => setModoDesarrollador(!modoDesarrollador)}
-          className={`w-full ${modoDesarrollador ? "bg-gray-500" : "bg-blue-500"} text-white p-2 mt-2 rounded`}
-        >
-          {modoDesarrollador ? "🔧 Desactivar Modo Desarrollador" : "🛠️ Activar Modo Desarrollador"}
-        </button>
-
         {ubicacion && (
           <p className="text-gray-500 mt-2">📍 Ubicación actual: {ubicacion.latitud}, {ubicacion.longitud}</p>
         )}
 
         {destino && (
-          <p className="text-green-500 mt-2">🎯 Destino: {destino.latitud}, {destino.longitud}</p>
+          <p className="text-green-500 mt-2">🎯 Destino: {destino.nombre} ({destino.latitud}, {destino.longitud})</p>
         )}
 
-        {modoDesarrollador && (
-          <div className="w-full h-96 mt-4">
-            <MapContainer
-              center={ubicacion ? [ubicacion.latitud, ubicacion.longitud] : [-26.8206, -65.1919]}
-              zoom={15}
-              className="leaflet-container"
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {ubicacion && <Marker position={[ubicacion.latitud, ubicacion.longitud]} />}
-              {destino && <Marker position={[destino.latitud, destino.longitud]} />}
-              <ManejadorMapa />
-            </MapContainer>
-          </div>
-        )}
-
-        {/* Botón GUIAME */}
+        {/* 🎤 Botón para encontrar destino por voz */}
         <button
-          onClick={iniciarReconocimiento}
-          className={`w-full ${escuchando ? "bg-red-500" : "bg-green-500"} text-white p-2 mt-2 rounded`}
+          onClick={encontrarDestino}
+          className={`w-full ${buscandoDestino ? "bg-gray-500" : "bg-blue-500"} text-white p-2 mt-2 rounded`}
         >
-          🎤 {escuchando ? "Escuchando..." : "Guíame"}
+          🎤 {buscandoDestino ? "Escuchando..." : "ENCONTRAR DESTINO"}
+        </button>
+
+        {/* 🚶 Botón para comenzar recorrido */}
+        <button
+          onClick={comenzarRecorrido}
+          className={`w-full ${enRecorrido ? "bg-gray-500" : "bg-green-500"} text-white p-2 mt-2 rounded`}
+          disabled={!destino || ruta.length === 0}
+        >
+          🚶 {enRecorrido ? "Recorrido en curso..." : "COMENZAR RECORRIDO"}
+        </button>
+
+        {/* 🎤 Botón para escuchar comandos de voz */}
+        <button
+          onClick={escucharComando}
+          className="w-full bg-yellow-500 text-white p-2 mt-2 rounded"
+        >
+          🎤 Hablar con la IA
         </button>
 
         {/* 🚨 Botón de emergencia */}
         <button
-          onClick={activarEmergencia}
+          onClick={() => hablar("⚠️ Emergencia activada. Se está enviando una alerta.")}
           className="w-full bg-red-600 text-white p-2 mt-4 rounded font-bold"
         >
           🚨 EMERGENCIA
