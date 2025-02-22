@@ -32,6 +32,7 @@ function App() {
         <Route path="/place-details/:name" element={<PlaceDetails />} />
         <Route path='/misviajes' element={<MyTrips />} />
         <Route path='/chatbot' element={<Chatbot />} /> 
+        <Route path='/guia-turistica' element={<GuiaTuristica />} /> 
         <Route path='/admin' element={<AdminPanel />} />
         <Route path='/puntos-turisticos' element={<PointsAndEvents />} />
         <Route path='/guia-turistica' element={<GuiaTuristica />} />

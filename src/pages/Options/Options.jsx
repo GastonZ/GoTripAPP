@@ -51,6 +51,11 @@ const Options = () => {
             icon: <ChatBubbleBottomCenterIcon className='w-10 h-10' />,
             href: '/chatbot'
         },
+        {
+            text: 'Guia Turistica',
+            icon: <ChatBubbleBottomCenterIcon className='w-10 h-10' />,
+            href: '/guia-turistica'
+        },
     ]
 
     return (
