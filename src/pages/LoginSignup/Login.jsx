@@ -22,13 +22,15 @@ const Login = () => {
         username: "usuarioPrueba",
         password: "123456"
       };
+
+      console.log("Estoy andando");
     
       // 🔹 Si las credenciales son las hardcodeadas, redirige sin llamar al backend
       if (username === CREDENCIALES_VALIDAS.username && password === CREDENCIALES_VALIDAS.password) {
         localStorage.setItem("userName", "Usuario de Prueba");
         localStorage.setItem("isNoVidente", "false");
         window.dispatchEvent(new Event("storage"));
-    
+        console.log("Entre");
         navigate("/opciones");
         setLoading(false);
         return; // 🔹 Detiene la ejecución aquí para evitar llamar al backend
