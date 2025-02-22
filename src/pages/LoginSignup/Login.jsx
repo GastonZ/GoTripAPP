@@ -24,6 +24,7 @@ const Login = () => {
 
             localStorage.setItem("userName", response.userName);
             localStorage.setItem("isNoVidente", response.isNoVidente);
+            window.dispatchEvent(new Event("storage"));
       
             navigate("/opciones");
           } else {
@@ -52,7 +53,7 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-labelledby="form-title">
               <div className="flex flex-col gap-2">
                 <label className="font-bold text-sm" htmlFor="username">
-                  Email
+                  Nombre de usuario
                 </label>
                 <input
                   id="username"

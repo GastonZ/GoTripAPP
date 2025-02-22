@@ -11,14 +11,20 @@ export default function Navbar() {
 
   // Efecto para actualizar cuando cambian los datos en localStorage
   useEffect(() => {
-    setUserName(localStorage.getItem("userName"));
-    setIsAuthenticated(!!localStorage.getItem("userName"));
+    const handleStorageChange = () => {
+      const storedUserName = localStorage.getItem("userName");
+      setUserName(storedUserName);
+      setIsAuthenticated(!!storedUserName);
+    };
+  
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Menú de navegación con visibilidad según autenticación
   const navigation = [
     { name: "Home", href: "/", current: false, show: true },
-    { name: "Iniciar sesión", href: "/iniciar", current: false, show: !isAuthenticated },
+    { name: "Iniciar sesión", href: "/iniciar", current: false, show: userName == '' },
     { name: "Opciones", href: "/opciones", current: false, show: isAuthenticated },
   ];
 

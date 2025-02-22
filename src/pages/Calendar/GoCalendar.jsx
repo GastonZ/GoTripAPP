@@ -4,24 +4,65 @@ import 'react-calendar/dist/Calendar.css';
 import ButtonOptions from '../../components/ButtonOptions';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/outline';
+import { getActiveCategorias, getAllPuntosTuristicos, getAllEventos } from '../../service/goTripService';
+import ModalCustom from '../../components/ModalCustom';
+import { TrashIcon } from 'lucide-react';
 
 const GoCalendar = () => {
   const navigate = useNavigate();
-
   const [value, setValue] = useState([new Date(), new Date()]);
   const [steps, setSteps] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectedItemsCoords, setSelectedItemsCoords] = useState([]);
   const [iframeUrl, setIframeUrl] = useState('');
-
-  const [locationCategories, setLocationsCategories] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [puntosTuristicos, setPuntosTuristicos] = useState([]);
+  const [selectedPunto, setSelectedPunto] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [events, setEvents] = useState([]);
+
 
   useEffect(() => {
-    setLocationsCategories(JSON.parse(localStorage.getItem('locationCategories')))
-    const savedItems = JSON.parse(localStorage.getItem('selectedItems'));
-    if (savedItems) setSelectedItems(savedItems);
+    fetchCategorias();
+    fetchEventos();
   }, []);
+
+  const fetchCategorias = async () => {
+    try {
+      const data = await getActiveCategorias();
+      setCategorias(data || []);
+    } catch (error) {
+      console.error("Error obteniendo categorías:", error);
+    }
+  };
+
+  const fetchEventos = async () => {
+    try {
+      const data = await getAllEventos();
+      setEvents(data || []);
+    } catch (error) {
+      console.error("Error obteniendo eventos:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchPuntosTuristicos();
+    }
+  }, [selectedCategory]);
+
+  const fetchPuntosTuristicos = async () => {
+    try {
+      const data = await getAllPuntosTuristicos();
+      const filtrados = data.filter(pt => pt.categoriaId === selectedCategory);
+      setPuntosTuristicos(filtrados);
+    } catch (error) {
+      console.error("Error obteniendo puntos turísticos:", error);
+    }
+  };
+
 
   const handleNextStep = () => {
     if (steps === 0) {
@@ -48,93 +89,140 @@ const GoCalendar = () => {
     setSteps(steps - 1);
   };
 
-  const handleCheckboxChange = (item, coordinates) => {
-    const updatedItems = selectedItems.includes(item)
-      ? selectedItems.filter(i => i !== item)
-      : [...selectedItems, item];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    setSelectedItems(updatedItems);
-
-    const updatedCoords = selectedItemsCoords.includes(coordinates)
-      ? selectedItemsCoords.filter(i => i !== coordinates)
-      : [...selectedItemsCoords, coordinates]
-
-    setSelectedItemsCoords(updatedCoords)
+  const handleCalendarChange = (dates) => {
+    const [start, end] = dates;
+    if (start >= today && end >= start) {
+      setValue([start, end]);
+    } else {
+      alert('Selecciona un rango de fechas válido');
+    }
   };
 
-  const handleDeletePoint = (item) => {
-    const updatedItems = selectedItems.filter(i => i !== item);
-    setSelectedItems(updatedItems);
+  const handleCheckboxChange = (item, type) => {
+    const key = `${type}_${item.id}`;
+    setSelectedItems((prev) =>
+      prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]
+    );
+
+    if (type === "punto") {
+      const coordString = `${item.latitud},${item.longitud}`;
+      setSelectedItemsCoords((prevCoords) =>
+        prevCoords.includes(coordString)
+          ? prevCoords.filter(coord => coord !== coordString)
+          : [...prevCoords, coordString]
+      );
+    }
   };
 
-  const handleConfirmTrip = () => {
-    localStorage.removeItem('selectedDates');
-    localStorage.removeItem('selectedItems');
+  const handleDeletePoint = (id, type) => {
+    const key = `${type}_${id}`;
 
-    const existingTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
-    const newTrip = { date: value, travelPoints: selectedItems, coords: selectedItemsCoords };
-    const updatedTrips = [...existingTrips, newTrip];
-    localStorage.setItem('savedTrips', JSON.stringify(updatedTrips));
-    navigate('/opciones');
+    setSelectedItems((prev) => prev.filter(item => item !== key));
+
+    if (type === "punto") {
+      setSelectedItemsCoords((prevCoords) =>
+        prevCoords.filter(coord => !coord.includes(id))
+      );
+    }
   };
 
-  const generateIframeUrl = () => {
-    const baseUrl = 'https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k';
-    const origin = 'current+location';
+  const handleConfirmTrip = async () => {
+    if (!value || selectedItems.length === 0) {
+      alert("Debes seleccionar al menos un punto turístico o un evento.");
+      return;
+    }
 
-    const selectedCoordinates = selectedItems.map(item => {
-      for (const category of locationCategories) {
-        const place = category.places.find(place => place.name === item);
-        if (place) return place.coordinates;
-      }
-      return null;
-    }).filter(Boolean);
+    const nuevoPlanViaje = {
+      usuarioId: 1,
+      fechaInicio: value[0].toISOString(),
+      fechaFin: value[1].toISOString(),
+      descripcion: "Nuevo plan de viaje",
+      lineaPlanViaje: selectedItems.map((key) => {
+        const [type, id] = key.split("_");
+        return type === "punto"
+          ? { puntoTuristicoId: parseInt(id) }
+          : { eventoId: parseInt(id) };
+      })
+    };
 
-    const waypoints = selectedCoordinates.slice(0, -1).join('|');
-    const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
-    return `${baseUrl}&origin=${origin}&destination=${finalDestination}&waypoints=${waypoints}&mode=driving`;
+    try {
+      await createPlanViaje(nuevoPlanViaje);
+      alert("Plan de viaje creado con éxito.");
+      navigate("/opciones");
+    } catch (error) {
+      console.error("Error creando plan de viaje:", error);
+      alert("Error al crear el plan de viaje.");
+    }
   };
 
+  const generateIframeUrl = async () => {
+    if (selectedItems.length < 1) return;
+  
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userCoords = `${position.coords.latitude},${position.coords.longitude}`;
+          const baseUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k";
+          
+          const selectedCoordinates = selectedItems.map((key) => {
+            const [type, id] = key.split("_");
+            if (type === "punto") {
+              const punto = puntosTuristicos.find((pt) => pt.id === parseInt(id));
+              return punto ? `${punto.latitud},${punto.longitud}` : null;
+            } else if (type === "evento") {
+              const evento = events.find((ev) => ev.id === parseInt(id));
+              return evento ? `${evento.latitud},${evento.longitud}` : null;
+            }
+            return null;
+          }).filter(Boolean);
+  
+          if (selectedCoordinates.length < 1) {
+            reject("No hay coordenadas suficientes para generar el mapa.");
+            return;
+          }
+  
+          const waypoints = selectedCoordinates.slice(0, -1).join("|");
+          const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
+  
+          const url = `${baseUrl}&origin=${userCoords}&destination=${finalDestination}&waypoints=${waypoints}&mode=driving`;
+          resolve(url);
+        },
+        (error) => {
+          console.error("Error obteniendo ubicación:", error);
+          reject("No se pudo obtener la ubicación del usuario.");
+        }
+      );
+    });
+  };
+  
   useEffect(() => {
-    if (steps === 4 && selectedItems.length > 0) {
-      const url = generateIframeUrl();
-      setIframeUrl(url);
+    if (steps === 3 && selectedItems.length > 0) {
+      generateIframeUrl()
+        .then((url) => setIframeUrl(url))
+        .catch((err) => console.error(err));
     }
   }, [steps, selectedItems]);
+
+  const handleOpenModal = (punto) => {
+    setSelectedPunto(punto);
+    setOpenModal(true);
+  };
+
+  console.log(selectedItems);
+
 
   return (
     <main>
       <div className='flex md:flex-row flex-col justify-center bg-gray-400 pt-4'>
-        <div className={`${steps === 0 ? 'bg-background-navy' : ''} p-6 text-3xl rounded-t-lg relative`}>
-          <div className={`${steps !== 0 ? 'hidden' : 'block'} top-1 left-1 absolute bg-primary-blue rounded-full w-6 h-6 text-center text-sm`}>1</div>
-          <p className='text-center'>
-            Seleccionar fechas
-          </p>
-        </div>
-        <div className={`${steps === 1 ? 'bg-background-navy' : ''} p-6 text-3xl rounded-t-lg relative`}>
-          <div className={`${steps !== 1 ? 'hidden' : 'block'} top-1 left-1 absolute bg-primary-blue rounded-full w-6 h-6 text-center text-sm`}>2</div>
-          <p className='text-center'>
-            Seleccionar categoría
-          </p>
-        </div>
-        <div className={`${steps === 2 ? 'bg-background-navy' : ''} p-6 text-3xl rounded-t-lg relative`}>
-          <div className={`${steps !== 2 ? 'hidden' : 'block'} top-1 left-1 absolute bg-primary-blue rounded-full w-6 h-6 text-center text-sm`}>3</div>
-          <p className='text-center'>
-            Puntos turísticos
-          </p>
-        </div>
-        <div className={`${steps === 3 ? 'bg-background-navy' : ''} p-6 text-3xl rounded-t-lg relative`}>
-          <div className={`${steps !== 3 ? 'hidden' : 'block'} top-1 left-1 absolute bg-primary-blue rounded-full w-6 h-6 text-center text-sm`}>4</div>
-          <p className='text-center'>
-            Destinos seleccionados
-          </p>
-        </div>
-        <div className={`${steps === 4 ? 'bg-background-navy' : ''} p-6 text-3xl rounded-t-lg relative`}>
-          <div className={`${steps !== 4 ? 'hidden' : 'block'} top-1 left-1 absolute bg-primary-blue rounded-full w-6 h-6 text-center text-sm`}>5</div>
-          <p className='text-center'>
-            Recorrido generado
-          </p>
-        </div>
+        {["Seleccionar fechas", "Puntos turísticos", "Destinos seleccionados", "Recorrido generado"].map((text, index) => (
+          <div key={index} className={`${steps === index ? 'bg-background-navy' : ''} p-6 text-3xl rounded-t-lg relative`}>
+            <div className={`${steps !== index ? 'hidden' : 'block'} top-1 left-1 absolute bg-primary-blue rounded-full w-6 h-6 text-center text-sm`}>{index + 1}</div>
+            <p className='text-center'>{text}</p>
+          </div>
+        ))}
       </div>
       <div className='flex justify-center gap-4 bg-background-navy p-4 min-h-[90vh]'>
         {steps === 0 && (
@@ -145,11 +233,11 @@ const GoCalendar = () => {
                 <div className='flex flex-col gap-1'>
                   <p>Fecha de inicio</p>
                   <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
-                    {value[0].getDate()}/{value[0].getMonth()}/{value[0].getFullYear()}
+                    {value[0].getDate()}/{value[0].getMonth() + 1}/{value[0].getFullYear()}
                   </span>
                   <p>Fecha de finalización</p>
                   <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
-                    {value[1].getDate()}/{value[1].getMonth()}/{value[1].getFullYear()}
+                    {value[1].getDate()}/{value[1].getMonth() + 1}/{value[1].getFullYear()}
                   </span>
                 </div>
                 <ButtonOptions onClick={handleNextStep} text={'Siguiente'} />
@@ -157,121 +245,170 @@ const GoCalendar = () => {
               <div className='flex justify-center bg-primary-blue p-6 border-none rounded-xl h-[500px]'>
                 <Calendar
                   className='bg-primary-lightBlue border-none rounded-xl w-full transition-all'
-                  onChange={setValue}
+                  onChange={handleCalendarChange}
                   value={value}
                   selectRange={true}
+                  minDate={today}
                 />
               </div>
             </div>
           </div>
         )}
-
         {steps === 1 && (
-          <>
-            <div className="flex flex-col">
-              <div className='flex justify-between items-center py-6 w-full'>
-                <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
-                <div className="mt-6">
-                  <ButtonOptions onClick={handleNextStep} text={'Siguiente'} />
+          <div className="mt-6">
+            <p>Selecciona una categoría</p>
+            <div className="flex flex-wrap justify-center gap-4">
+              {categorias.map((category) => (
+                <div
+                  key={category.id}
+                  className={`border p-4 rounded-lg w-full md:w-auto cursor-pointer ${selectedCategory === category.id ? 'bg-primary-blue text-white' : 'bg-gray-200'}`}
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  <h2 className="font-semibold text-xl text-center">{category.descripcion}</h2>
                 </div>
-              </div>
-              <div className="flex flex-wrap justify-around gap-4 rounded-lg">
-                {locationCategories.map(({ category }) => (
-                  <div 
-                    key={category} 
-                    className={`flex-grow p-4 rounded-lg w-[350px] max-h-[500px] cursor-pointer ${selectedCategory === category ? 'bg-primary-blue text-white' : 'bg-gray-200'}`} 
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    <h2 className="font-semibold text-center text-xl">{category}</h2>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          </>
-        )}
-
-        {steps === 2 && selectedCategory && (
-          <>
-            <div className="flex flex-col">
-              <div className='flex justify-between items-center py-6 w-full'>
-                <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
-                <div className="mt-6">
-                  <ButtonOptions onClick={handleNextStep} text={'Ver puntos seleccionados'} />
-                </div>
-              </div>
-              <div className="flex flex-wrap justify-around gap-4 rounded-lg">
-                {locationCategories.filter(({ category }) => category === selectedCategory).map(({ places }) => (
-                  places.map(({ name, coordinates }) => (
-                    <li key={name} className="flex justify-between items-center bg-white mb-2 p-2 rounded-md w-[350px]">
-                      <span>{name}</span>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          className="form-checkbox"
-                          onChange={() => handleCheckboxChange(name, coordinates)}
-                          checked={selectedItems.includes(name)}
-                        />
-                        <button className="text-blue-500 underline" onClick={() => navigate(`/place-details/${name}`)}>Ver detalle</button>
+            {selectedCategory && (
+              <>
+                {/* Puntos turísticos */}
+                <div className="flex flex-col items-center mt-6 mb-4">
+                  <p>Puntos turísticos en esta categoría:</p>
+                  <div className="flex flex-wrap justify-around gap-4">
+                    {puntosTuristicos.map((punto) => (
+                      <div key={punto.id} className="flex justify-between items-center bg-white p-4 rounded-md w-[350px]">
+                        <span>{punto.nombre}</span>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="form-checkbox"
+                            onChange={() => handleCheckboxChange(punto, "punto")}
+                            checked={selectedItems.includes(`punto_${punto.id}`)}
+                          />
+                          <button className="text-blue-500 underline" onClick={() => handleOpenModal(punto)}>Ver detalle</button>
+                        </div>
                       </div>
-                    </li>
-                  ))
-                ))}
-              </div>
+                    ))}
+                  </div>
+                </div>
+                {console.log(events)
+                }
+                {/* Eventos */}
+                <div className="flex flex-col items-center mt-6 mb-4">
+                  <p>Eventos en esta categoría:</p>
+                  <div className="flex flex-wrap justify-around gap-4">
+                    {events.filter(evento => evento.categoriaId === selectedCategory).map((evento) => (
+                      <div key={evento.id} className="flex justify-between items-center bg-gray-100 p-4 rounded-md w-[350px]">
+                        <span>{evento.nombre}</span>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="form-checkbox"
+                            onChange={() => handleCheckboxChange(evento, "evento")}
+                            checked={selectedItems.includes(`evento_${evento.id}`)}
+                          />
+                          <button className="text-blue-500 underline" onClick={() => handleOpenModal(evento)}>Ver detalle</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+            <div className='mt-6'>
+              <ButtonOptions onClick={handleNextStep} text={'Siguiente'} />
             </div>
-          </>
+          </div>
         )}
 
-        {steps === 3 && (
-          <div className='flex items-start mt-40'>
-            <div className='flex flex-wrap gap-4'>
-              <div className='flex flex-col gap-6'>
-                <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
-                <div className='flex flex-col gap-4 bg-primary-lightBlue p-8 rounded-md'>
-                  {selectedItems.map(item => (
-                    <div key={item} className='flex justify-between items-center bg-primary-blue px-6 py-2 rounded-md text-black'>
-                      <span>{item}</span>
-                      <button className='ml-4 text-red-500' onClick={() => handleDeletePoint(item)}>Eliminar</button>
-                    </div>
-                  ))}
-                </div>
+        {openModal && (
+          <ModalCustom radius={10} introText="Detalles del Punto Turístico" modalState={openModal} handleModalClose={() => setOpenModal(false)}>
+            <div className="p-4">
+              <h2 className="font-semibold text-xl">{selectedPunto.nombre}</h2>
+              <p><strong>Descripción:</strong> {selectedPunto.descripcion}</p>
+              <p><strong>Ubicación:</strong> {selectedPunto.latitud}, {selectedPunto.longitud}</p>
+              <img src={selectedPunto.pathImagen} alt="" className='w-10 h-10' />
+            </div>
+          </ModalCustom>
+        )}
+
+        {steps === 2 && (
+          <div className='flex flex-col items-center mt-10 w-full'>
+            <ArrowLeftCircleIcon className='mb-4 cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
+
+            <h2 className="mb-4 text-3xl">Puntos y eventos seleccionados</h2>
+
+            {selectedItems.length === 0 ? (
+              <p className="text-red-500">No has seleccionado ningún punto turístico ni evento.</p>
+            ) : (
+              <div className='flex flex-col gap-4 bg-primary-lightBlue p-8 rounded-md w-full max-w-xl'>
+                {/* 🔹 Puntos turísticos seleccionados */}
+                {selectedItems.filter(key => key.startsWith("punto_")).map((key) => {
+                  const puntoId = parseInt(key.split("_")[1]);
+                  const punto = puntosTuristicos.find(pt => pt.id === puntoId);
+
+                  return (
+                    punto && (
+                      <div key={punto.id} className='flex justify-between items-center bg-primary-blue px-6 py-2 rounded-md text-white'>
+                        <span className='font-semibold text-xl'>{punto.nombre}</span>
+                        <div className="flex items-center space-x-2">
+                          <button className='underline' onClick={() => handleOpenModal(punto)}>Ver detalle</button>
+                          <TrashIcon className='w-6 h-6 cursor-pointer' onClick={() => handleDeletePoint(punto.id, "punto")} />
+                        </div>
+                      </div>
+                    )
+                  );
+                })}
+
+                {/* 🔹 Eventos seleccionados */}
+                {selectedItems.filter(key => key.startsWith("evento_")).map((key) => {
+                  const eventoId = parseInt(key.split("_")[1]);
+                  const evento = events.find(ev => ev.id === eventoId);
+
+                  return (
+                    evento && (
+                      <div key={evento.id} className='flex justify-between items-center bg-gray-500 px-6 py-2 rounded-md text-white'>
+                        <span className='font-semibold text-xl'>{evento.nombre}</span>
+                        <div className="flex items-center space-x-2">
+                          <button className='underline' onClick={() => handleOpenModal(evento)}>Ver detalle</button>
+                          <TrashIcon className='w-6 h-6 cursor-pointer' onClick={() => handleDeletePoint(evento.id, "evento")} />
+                        </div>
+                      </div>
+                    )
+                  );
+                })}
               </div>
-              <div className='flex flex-col justify-center gap-4'>
-                {/* <ButtonOptions onClick={handlePreviusStep} text={'Gestionar puntos turístico'} /> */}
+            )}
+
+            {selectedItems.length > 0 && (
+              <div className='mt-5'>
                 <ButtonOptions onClick={handleNextStep} text={'Confirmar plan de viaje'} />
               </div>
-            </div>
+            )}
           </div>
         )}
 
-        {steps === 4 && (
-          <div className='flex justify-center items-center'>
-            <div className='flex flex-wrap justify-center gap-4'>
-              <div className='flex flex-col gap-6'>
-                <ArrowLeftCircleIcon className='cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
-                <div className='flex flex-col gap-4 bg-primary-lightBlue p-8 rounded-md'>
-                  {selectedItems.map(item => (
-                    <span key={item} className='bg-primary-blue px-6 py-2 rounded-md text-black'>
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className='flex flex-col justify-center gap-4'>
-                {iframeUrl ? (
-                  <iframe
-                    src={iframeUrl}
-                    allowFullScreen=""
-                    loading="lazy"
-                    className='border-0 rounded-md w-full md:w-[500px] h-[500px]'
-                  ></iframe>
-                ) : (
-                  <div>Generando mapa...</div>
-                )}
-                <ButtonOptions onClick={handleConfirmTrip} text={'Guardar plan de viaje'} />
-              </div>
-            </div>
+
+        {/* Step 3: Mostrar mapa con los puntos seleccionados */}
+        {steps === 3 && (
+          <div className='flex flex-col items-center mt-10 w-full'>
+            <ArrowLeftCircleIcon className='mb-4 cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
+            <h2 className="mb-4 text-3xl">Mapa del recorrido</h2>
+
+            {iframeUrl ? (
+              <iframe
+                src={iframeUrl}
+                allowFullScreen=""
+                loading="lazy"
+                className='border-0 rounded-md w-full md:w-[500px] h-[500px]'
+              ></iframe>
+            ) : (
+              <p className="text-gray-500">Generando mapa... Asegúrate de haber seleccionado al menos dos ubicaciones.</p>
+            )}
+
+            <ButtonOptions onClick={handleConfirmTrip} text={'Guardar plan de viaje'} />
           </div>
         )}
+
       </div>
     </main>
   );

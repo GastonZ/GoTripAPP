@@ -9,6 +9,7 @@ const SignUp = () => {
   // Estados del formulario
   const [dni, setDni] = useState("");
   const [email, setEmail] = useState("");
+  const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [telefono, setTelefono] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
@@ -22,13 +23,14 @@ const SignUp = () => {
     setErrorMessage("");
 
     const newUser = {
-      userName: email,
+      userName,
       password,
       email,
       telefono,
       fechaNacimiento: fechaNacimiento,
       state: 1,
       isNoVidente: blind,
+      isAdmin: false
     };
 
     try {
@@ -67,8 +69,8 @@ const SignUp = () => {
 
           <form className="flex flex-col gap-4" aria-labelledby="form-title" onSubmit={handleConfirmSignup}>
             <div className="flex flex-col gap-2">
-              <label className="font-bold text-sm" htmlFor="email">Email</label>
-              <input onChange={(e) => setEmail(e.target.value)} id="email" className="focus:bg-primary-lightBlue p-[6px] rounded-lg outline-none" type="email" required />
+              <label className="font-bold text-sm" htmlFor="username">Nombre de usuario</label>
+              <input onChange={(e) => setUsername(e.target.value)} id="username" className="focus:bg-primary-lightBlue p-[6px] rounded-lg outline-none" type="username" required />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -77,8 +79,13 @@ const SignUp = () => {
             </div>
 
             <div className="flex flex-col gap-2">
+              <label className="font-bold text-sm" htmlFor="email">Email</label>
+              <input onChange={(e) => setEmail(e.target.value)} id="email" className="focus:bg-primary-lightBlue p-[6px] rounded-lg outline-none" type="email" required />
+            </div>
+
+            <div className="flex flex-col gap-2">
               <label className="font-bold text-sm" htmlFor="dni">DNI</label>
-              <input onChange={(e) => setDni(e.target.value)} id="dni" className="focus:bg-primary-lightBlue p-[6px] rounded-lg outline-none" type="text" required />
+              <input onChange={(e) => setDni(e.target.value)} id="dni" className="focus:bg-primary-lightBlue p-[6px] rounded-lg outline-none" type="number" required />
             </div>
 
             <div className="flex flex-col gap-2">

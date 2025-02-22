@@ -117,6 +117,7 @@ const Home = () => {
   ]
 
   const [currentUserBlind, setCurrentUserBlind] = useState('');
+  const [username, setUsername] = useState('')
 
   useEffect(() => {
     const storedLocations = JSON.parse(localStorage.getItem('locationCategories'));
@@ -135,30 +136,35 @@ const Home = () => {
       console.log('User data already exists');
     }
 
-    const currentUserData = JSON.parse(localStorage.getItem('userData')) || {};
-    setCurrentUserBlind(currentUserData.blind);
+    const isBlind = JSON.parse(localStorage.getItem('isNoVidente')) || null;
+    const userName = localStorage.getItem('userName') || ""
+    setCurrentUserBlind(isBlind);
+    setUsername(userName)
   }, []);
+
+  console.log(username);
+
 
   return (
     currentUserBlind ?
       <main className='flex flex-col justify-center items-center gap-10 p-4 w-full h-screen'>
         <h1 className='text-7xl text-center'>Bienvenidos a <br /> TUCUMÁN</h1>
         <div className='flex flex-col gap-4'>
-          <button className='bg-primary-blue px-6 py-4 rounded-2xl text-2xl text-white'>Iniciar sesión</button>
-          <button className='bg-primary-blue px-6 py-4 rounded-2xl text-2xl text-white'>Regístrate</button>
+          {username !== '' ? <></> : <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Iniciar sesión</button>}
+          <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Regístrate</button>
         </div>
       </main>
       :
       <main className='flex justify-center items-center bg-background-navy p-8 h-screen'>
-        <section className='lg:block relative hidden w-1/2'>
+        <section className='hidden lg:block relative w-1/2'>
           <img className='rounded-full w-[500px] h-[500px] object-cover' src={icons.tucuman} alt="Imágen de Tucumán" />
-          <img className='xl:block top-[250px] right-[300px] absolute hidden rounded-full w-[350px] h-[350px] object-cover' src={icons.casaHistorica} alt="Imágen de Tucumán" />
+          <img className='hidden xl:block top-[250px] right-[300px] absolute rounded-full w-[350px] h-[350px] object-cover' src={icons.casaHistorica} alt="Imágen de Tucumán" />
         </section>
         <section className='flex flex-col justify-center items-center gap-6 h-screen'>
-          <h1 className='text-[60px] text-center sm:text-[90px]'>Bienvenidos a <br /> <strong className='uppercase'>Tucumán</strong> </h1>
+          <h1 className='text-[60px] sm:text-[90px] text-center'>Bienvenidos a <br /> <strong className='uppercase'>Tucumán</strong> </h1>
           <h2 className='text-3xl'>Comenzar a planear tu viaje</h2>
           <Link to={'/iniciar'}>
-            <button className='bg-primary-blue hover:bg-primary-lightBlue px-7 py-2 rounded-2xl font-medium text-3xl transition-all'>Iniciar sesión</button>
+            {username !== '' ? <></> : <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Iniciar sesión</button>}
           </Link>
           <p className='text-2xl'>
             {/* Additional content */}

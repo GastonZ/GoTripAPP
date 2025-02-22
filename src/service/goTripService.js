@@ -29,7 +29,24 @@ export const createPlanViaje = (data) => handleRequest(apiGoTrip.post(`/PlanViaj
 export const activatePlanViaje = (id) => handleRequest(apiGoTrip.put(`/PlanViaje/${id}/activate`));
 export const inactivatePlanViaje = (id) => handleRequest(apiGoTrip.put(`/PlanViaje/${id}/inactivate`));
 
-export const uploadPuntoTuristicoImages = (data) => handleRequest(apiGoTrip.post(`/PuntoTuristico/PutImages`, data));
+export const uploadPuntoTuristicoImages = async (id, file) => {
+  const formData = new FormData();
+  formData.append("images", file);
+
+  try {
+    const response = await apiGoTrip.post(`/PuntoTuristico/PutImages?idPuntoTuristico=${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error subiendo la imagen:", error);
+    throw error;
+  }
+};
+
+
 export const getAllPuntosTuristicos = () => handleRequest(apiGoTrip.get(`/PuntoTuristico/GetAll`));
 export const getPuntoTuristico = (id) => handleRequest(apiGoTrip.get(`/PuntoTuristico/${id}`));
 export const updatePuntoTuristico = (id, data) => handleRequest(apiGoTrip.put(`/PuntoTuristico/${id}`, data));
