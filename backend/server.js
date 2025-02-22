@@ -4,6 +4,7 @@ const { OpenAI } = require("openai");
 const http = require("http");
 const socketIo = require("socket.io");
 const axios = require("axios");
+const twilio = require("twilio"); // ✅ Nuevo: Twilio para enviar mensajes de emergencia
 require("dotenv").config();
 
 const app = express();
@@ -13,6 +14,41 @@ const io = socketIo(server, { cors: { origin: "*" } });
 const port = 3001;
 app.use(cors());
 app.use(express.json());
+
+/** 🌟 SECCIÓN DE EMERGENCIAS: LLAMADA Y MENSAJE DE TEXTO 🌟 */
+
+// 🔴 Definir el número de emergencia
+const NUMERO_EMERGENCIA = "+5493816694178"; // Reemplázalo con el número real
+
+// 🔴 Configurar Twilio para enviar SMS
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+// 📩 Ruta para enviar mensaje de emergencia
+app.post("/enviar-emergencia", async (req, res) => {
+    try {
+        const { telefono, mensaje } = req.body;
+
+        const response = await twilioClient.messages.create({
+            body: mensaje,
+            from: process.env.TWILIO_PHONE_NUMBER, // Número de Twilio
+            to: telefono,
+        });
+
+        res.status(200).json({ success: true, message: "Mensaje de emergencia enviado", response });
+    } catch (error) {
+        console.error("❌ Error enviando mensaje de emergencia:", error);
+        res.status(500).json({ success: false, error });
+    }
+});
+
+// 📞 Ruta para manejar llamadas de emergencia (solo abre el marcador en frontend)
+app.get("/llamar-emergencia", (req, res) => {
+    res.json({ numero: NUMERO_EMERGENCIA });
+});
+
+/** 🌟 FIN DE SECCIÓN DE EMERGENCIAS 🌟 */
+
+/** 🌍 SECCIÓN DE GEOPOSICIONAMIENTO Y RUTAS 🌍 */
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 

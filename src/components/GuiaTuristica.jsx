@@ -14,6 +14,46 @@ export default function GuiaTuristica() {
   const [buscandoDestino, setBuscandoDestino] = useState(false);
   const [enRecorrido, setEnRecorrido] = useState(false);
 
+  //Lamada de emergencia
+  const NUMERO_EMERGENCIA = "+5493816610201"; // Reemplázalo con el número de emergencia real
+
+
+  // 📞 Llamar a contacto de emergencia
+  const llamarEmergencia = () => {
+    window.location.href = `tel:${NUMERO_EMERGENCIA}`;
+  };
+
+
+  // 🎙️ Mensaje de bienvenida al cargar la app
+  useEffect(() => {
+    hablar("Bienvenido a la Guía Turística por IA de GoTrip APP.");
+  }, []);
+
+  // 📩 Enviar mensaje de emergencia por WhatsApp con ubicación actual
+  const enviarMensajeWhatsApp = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitud = position.coords.latitude;
+          const longitud = position.coords.longitude;
+          const mensaje = encodeURIComponent(
+            `⚠️ EMERGENCIA: Necesito ayuda. 📍 Mi ubicación: https://maps.google.com/?q=${latitud},${longitud}`
+          );
+          const url = `https://wa.me/${NUMERO_EMERGENCIA}?text=${mensaje}`;
+          window.open(url, "_blank"); // Abre WhatsApp en una nueva pestaña
+        },
+        (error) => {
+          console.error("❌ Error obteniendo ubicación:", error);
+          alert("No se pudo obtener tu ubicación.");
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert("Tu dispositivo no soporta geolocalización.");
+    }
+  };
+
+
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
@@ -141,8 +181,8 @@ export default function GuiaTuristica() {
   // 🔊 Función para que la IA hable
   const hablar = (texto) => {
     if (!window.speechSynthesis) {
-        console.error("❌ La síntesis de voz no está disponible en este navegador.");
-        return;
+      console.error("❌ La síntesis de voz no está disponible en este navegador.");
+      return;
     }
 
     setHablando(true);
@@ -152,25 +192,25 @@ export default function GuiaTuristica() {
     const fragmentos = texto.match(/.{1,200}(\s|$)/g); // Divide el texto en partes de hasta 200 caracteres sin cortar palabras
 
     const hablarFragmento = (index) => {
-        if (index >= fragmentos.length) {
-            setHablando(false);
-            return;
-        }
+      if (index >= fragmentos.length) {
+        setHablando(false);
+        return;
+      }
 
-        const utterance = new SpeechSynthesisUtterance(fragmentos[index]);
-        utterance.lang = "es-ES";
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        utterance.volume = 1;
+      const utterance = new SpeechSynthesisUtterance(fragmentos[index]);
+      utterance.lang = "es-ES";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
 
-        utterance.onend = () => hablarFragmento(index + 1); // Llamar al siguiente fragmento después de que termine el actual
-        utterance.onerror = (e) => console.error("❌ Error en síntesis de voz:", e);
+      utterance.onend = () => hablarFragmento(index + 1); // Llamar al siguiente fragmento después de que termine el actual
+      utterance.onerror = (e) => console.error("❌ Error en síntesis de voz:", e);
 
-        synth.speak(utterance);
+      synth.speak(utterance);
     };
 
     hablarFragmento(0); // Iniciar la lectura desde el primer fragmento
-};
+  };
 
 
   return (
@@ -211,12 +251,18 @@ export default function GuiaTuristica() {
           🎤 Hablar con la IA
         </button>
 
-        {/* 🚨 Botón de emergencia */}
         <button
-          onClick={() => hablar("⚠️ Emergencia activada. Se está enviando una alerta.")}
-          className="w-full bg-red-600 text-white p-2 mt-4 rounded font-bold"
+          onClick={llamarEmergencia}
+          className="w-full bg-red-500 text-white p-2 mt-4 rounded font-bold"
         >
-          🚨 EMERGENCIA
+          📞 LLAMAR A CONTACTO DE EMERGENCIA
+        </button>
+
+        <button
+          onClick={enviarMensajeWhatsApp}
+          className="w-full bg-blue-600 text-white p-2 mt-2 rounded"
+        >
+          📩 ENVIAR MENSAJE DE EMERGENCIA
         </button>
       </div>
     </div>
