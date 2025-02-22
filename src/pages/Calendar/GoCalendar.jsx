@@ -326,7 +326,7 @@ const GoCalendar = () => {
               <h2 className="font-semibold text-xl">{selectedPunto.nombre}</h2>
               <p><strong>Descripción:</strong> {selectedPunto.descripcion}</p>
               <p><strong>Ubicación:</strong> {selectedPunto.latitud}, {selectedPunto.longitud}</p>
-              <img src={selectedPunto.pathImagen} alt="" className='w-10 h-10' />
+              <img  src={'https://localhost:7070/' + selectedPunto.pathImagen} alt="" className='m-auto pt-4 w-[200px] h-[200px] object-cover' />
             </div>
           </ModalCustom>
         )}
