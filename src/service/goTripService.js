@@ -2,6 +2,7 @@ import apiGoTrip from "./api/apiGoTrip";
 
 const handleRequest = async (request) => {
   try {
+    console.log ("🚀 Request:", request);
     const response = await request;
     return response.data;
   } catch (error) {
