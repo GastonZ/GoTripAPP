@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 
-const socket = io("https://gotripapp-novidente-production.up.railway.app/", {
+//PROD
+const socket = io("https://gotripapp-novidente-production-fbbf.up.railway.app/", {
   transports: ["websocket", "polling"],
 });
 
+
+//DEV
+//const socket = io("http://localhost:3001");
 
 export default function GuiaTuristica() {
   const [ubicacion, setUbicacion] = useState(null);
