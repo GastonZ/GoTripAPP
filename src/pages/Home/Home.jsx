@@ -136,7 +136,7 @@ const Home = () => {
       console.log('User data already exists');
     }
 
-    const isBlind = JSON.parse(localStorage.getItem('isNoVidente')) || null;
+    const isBlind = localStorage.getItem('isNoVidente') || null;
     const userName = localStorage.getItem('userName') || ""
     setCurrentUserBlind(isBlind);
     setUsername(userName)
