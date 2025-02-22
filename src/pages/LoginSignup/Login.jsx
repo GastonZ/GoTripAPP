@@ -13,29 +13,47 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setErrorMessage("");
-      
-        try {
-          const response = await loginUsuario(username, password);
-      
-          if (response && response.isAuthenticated) {
-
-            localStorage.setItem("userName", response.userName);
-            localStorage.setItem("isNoVidente", response.isNoVidente);
-            window.dispatchEvent(new Event("storage"));
-      
-            navigate("/opciones");
-          } else {
-            setErrorMessage("Credenciales inválidas. Intenta de nuevo.");
-          }
-        } catch (error) {
-          setErrorMessage("Error en el login. Verifica tus credenciales.");
-        } finally {
-          setLoading(false);
-        }
+      e.preventDefault();
+      setLoading(true);
+      setErrorMessage("");
+    
+      // 🔹 Credenciales hardcodeadas
+      const CREDENCIALES_VALIDAS = {
+        username: "usuarioPrueba",
+        password: "123456"
       };
+    
+      // 🔹 Si las credenciales son las hardcodeadas, redirige sin llamar al backend
+      if (username === CREDENCIALES_VALIDAS.username && password === CREDENCIALES_VALIDAS.password) {
+        localStorage.setItem("userName", "Usuario de Prueba");
+        localStorage.setItem("isNoVidente", "false");
+        window.dispatchEvent(new Event("storage"));
+    
+        navigate("/opciones");
+        setLoading(false);
+        return; // 🔹 Detiene la ejecución aquí para evitar llamar al backend
+      }
+    
+      // 🔹 Si no son las credenciales hardcodeadas, sigue con el flujo normal
+      try {
+        const response = await loginUsuario(username, password);
+    
+        if (response.success) {
+          localStorage.setItem("userName", response.userName);
+          localStorage.setItem("isNoVidente", response.isNoVidente.toString());
+          window.dispatchEvent(new Event("storage"));
+    
+          navigate("/opciones");
+        } else {
+          setErrorMessage("Credenciales inválidas. Intenta de nuevo.");
+        }
+      } catch (error) {
+        setErrorMessage("Error al conectar con el servidor. Intenta más tarde.");
+      }
+    
+      setLoading(false);
+    };
+    
       
   
     return (
