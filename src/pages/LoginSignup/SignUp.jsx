@@ -27,6 +27,7 @@ const SignUp = () => {
       userName,
       password,
       email,
+      documento: dni,
       telefono,
       fechaNacimiento: fechaNacimiento,
       state: 1,

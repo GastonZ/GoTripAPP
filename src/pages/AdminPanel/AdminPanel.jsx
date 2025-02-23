@@ -40,6 +40,7 @@ const AdminPanel = () => {
     password: "",
     email: "",
     telefono: "",
+    documento: "",
     fechaNacimiento: "",
     state: 1,
     isNoVidente: false,
@@ -111,6 +112,7 @@ const AdminPanel = () => {
         password: "",
         email: "",
         telefono: "",
+        documento: "",
         fechaNacimiento: "",
         state: 1,
         isNoVidente: false,
@@ -548,6 +550,14 @@ const AdminPanel = () => {
                     onChange={(e) => setSelectedUser({ ...selectedUser, telefono: e.target.value })}
                   />
 
+                  <label className="block mt-2 font-bold">Documento:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={selectedUser.documento}
+                    onChange={(e) => setSelectedUser({ ...selectedUser, documento: e.target.value })}
+                  />
+
                   <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
                   <input
                     type="date"
@@ -636,6 +646,14 @@ const AdminPanel = () => {
                     value={newUser.telefono}
                     onChange={(e) => setNewUser({ ...newUser, telefono: e.target.value })}
                     required
+                  />
+
+                  <label className="block mt-2 font-bold">Documento:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.documento}
+                    onChange={(e) => setNewUser({ ...newUser, documento: e.target.value })}
                   />
 
                   <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
