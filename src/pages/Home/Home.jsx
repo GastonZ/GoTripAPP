@@ -149,8 +149,14 @@ const Home = () => {
       <main className='flex flex-col justify-center items-center gap-10 p-4 w-full h-screen'>
         <h1 className='text-7xl text-center'>Bienvenidos a <br /> TUCUMÁN</h1>
         <div className='flex flex-col gap-4'>
-          {username !== '' ? <></> : <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Iniciar sesión</button>}
-          <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Regístrate</button>
+          {username !== '' ? <></> :
+            <Link to={'/iniciar'}>
+              <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Iniciar sesión</button>
+            </Link>
+          }
+          <Link to={'/registro'}>
+            <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Regístrate</button>
+          </Link>
         </div>
       </main>
       :
