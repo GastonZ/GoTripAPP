@@ -22,8 +22,11 @@ const Login = () => {
       
           if (response && response.isAuthenticated) {
 
+            console.log(response);
+            
             localStorage.setItem("userName", response.userName);
             localStorage.setItem("isNoVidente", response.isNoVidente);
+            localStorage.setItem("userGoId", response.userId)
             window.dispatchEvent(new Event("storage"));
       
             navigate("/opciones");

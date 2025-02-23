@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SideMenuAdmin from '../../components/SideMenuAdmin';
 import ModalCustom from '../../components/ModalCustom';
-import { PencilIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/20/solid';
+import { PencilIcon, TrashIcon, ArrowPathIcon, UserPlusIcon } from '@heroicons/react/20/solid';
 import {
   getAllUsuarios,
   activateUsuario,
@@ -23,7 +23,8 @@ import {
   updateEvento,
   inactivateEvento,
   activateEvento,
-  uploadPuntoTuristicoImages
+  uploadPuntoTuristicoImages,
+  createUsuario
 } from '../../service/goTripService';
 import { Image } from 'lucide-react';
 
@@ -33,6 +34,21 @@ const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    userName: "",
+    password: "",
+    email: "",
+    telefono: "",
+    fechaNacimiento: "",
+    state: 1,
+    isNoVidente: false,
+    isAdmin: false
+  });
+
+  console.log(users)
+
+  console.log(selectedUser);
 
   useEffect(() => {
     fetchUsuarios();
@@ -82,6 +98,26 @@ const AdminPanel = () => {
       setOpenModal(false);
     } catch (error) {
       console.error("Error actualizando usuario:", error);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      await createUsuario(newUser);
+      fetchUsuarios();
+      setOpenCreateModal(false);
+      setNewUser({
+        userName: "",
+        password: "",
+        email: "",
+        telefono: "",
+        fechaNacimiento: "",
+        state: 1,
+        isNoVidente: false,
+        isAdmin: false
+      });
+    } catch (error) {
+      console.error("Error creando usuario:", error);
     }
   };
 
@@ -210,7 +246,7 @@ const AdminPanel = () => {
       alert("Por favor selecciona una imagen.");
       return;
     }
-  
+
     try {
       await uploadPuntoTuristicoImages(selectedPuntoId, selectedFile);
       fetchPuntosTuristicos()
@@ -221,7 +257,7 @@ const AdminPanel = () => {
       alert("Error al subir la imagen.");
     }
   };
-  
+
   const [newCategory, setNewCategory] = useState("");
   const [openModalCategory, setOpenModalCategory] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState(null);
@@ -435,7 +471,13 @@ const AdminPanel = () => {
         return (
           <div className="p-6 w-full h-screen">
             <h1 className="mb-6 text-3xl">Gestión de Usuarios</h1>
-
+            <button
+              className="flex items-center gap-2 bg-blue-500 mb-6 px-4 py-2 rounded-md text-white"
+              onClick={() => setOpenCreateModal(true)}
+            >
+              <UserPlusIcon className="w-5 h-5" />
+              Crear Usuario
+            </button>
             {/* Usuarios Activos */}
             <div className='flex gap-4'>
               <div>
@@ -551,6 +593,95 @@ const AdminPanel = () => {
                 </div>
               </ModalCustom>
             )}
+
+            {openCreateModal && (
+              <ModalCustom
+                introText="Crear Nuevo Usuario"
+                radius={10}
+                modalState={openCreateModal}
+                handleModalClose={() => setOpenCreateModal(false)}
+              >
+                <div className="p-4">
+                  <label className="block font-bold">Nombre de usuario:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.userName}
+                    onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
+                    required
+                  />
+
+                  <label className="block mt-2 font-bold">Contraseña:</label>
+                  <input
+                    type="password"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    required
+                  />
+
+                  <label className="block mt-2 font-bold">Correo Electrónico:</label>
+                  <input
+                    type="email"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    required
+                  />
+
+                  <label className="block mt-2 font-bold">Teléfono:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.telefono}
+                    onChange={(e) => setNewUser({ ...newUser, telefono: e.target.value })}
+                    required
+                  />
+
+                  <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
+                  <input
+                    type="date"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.fechaNacimiento}
+                    onChange={(e) => setNewUser({ ...newUser, fechaNacimiento: e.target.value })}
+                    required
+                  />
+
+                  {/* Estado (Siempre 1) */}
+                  <input type="hidden" value={1} />
+
+                  {/* Checkboxes */}
+                  <div className="flex items-center gap-2 mt-4">
+                    <label className="font-bold">¿Es No Vidente?</label>
+                    <input
+                      type="checkbox"
+                      checked={newUser.isNoVidente}
+                      onChange={(e) => setNewUser({ ...newUser, isNoVidente: e.target.checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <label className="font-bold">¿Es Administrador?</label>
+                    <input
+                      type="checkbox"
+                      checked={newUser.isAdmin}
+                      onChange={(e) => setNewUser({ ...newUser, isAdmin: e.target.checked })}
+                    />
+                  </div>
+
+                  {/* Botones */}
+                  <div className="flex gap-4 mt-4">
+                    <button className="bg-blue-500 px-4 py-2 rounded-md text-white" onClick={handleCreateUser}>
+                      Crear
+                    </button>
+                    <button className="bg-gray-500 px-4 py-2 rounded-md text-white" onClick={() => setOpenCreateModal(false)}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </ModalCustom>
+            )}
+
           </div>
         );
       case "touristSpots":
@@ -618,7 +749,7 @@ const AdminPanel = () => {
                 introText={selectedPunto ? "Editar Punto Turístico" : "Agregar Punto Turístico"}
                 radius={10}
                 modalState={openModalTourist}
-                handleModalClose={() => setOpenModalTourist(false)}
+                handleModalClose={() => setOpenModalToursit(false)}
               >
                 <div className="flex flex-col gap-3 p-4">
                   {/* Nombre del punto turístico */}

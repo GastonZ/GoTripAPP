@@ -82,11 +82,6 @@ export default function Navbar() {
 
           {/* Notificaciones y Menú Usuario */}
           <div className="right-0 sm:static absolute inset-y-0 sm:inset-auto flex items-center sm:ml-6 pr-2 sm:pr-0">
-            <button type="button" className="relative bg-gray-800 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 text-gray-400 hover:text-white">
-              <span className="sr-only">Ver notificaciones</span>
-              <BellIcon aria-hidden="true" className="w-6 h-6" />
-            </button>
-
             {/* Menú usuario solo si está autenticado */}
             {isAuthenticated && (
               <Menu as="div" className="relative ml-3">

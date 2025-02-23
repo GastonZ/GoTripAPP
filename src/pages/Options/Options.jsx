@@ -54,7 +54,7 @@ const Options = () => {
     ]
 
     return (
-        currentUserBlind ?
+        !currentUserBlind ?
             <main className='flex flex-wrap justify-center items-center gap-10 min-h-screen'>
                 <div className="absolute flex flex-wrap justify-center gap-8">
                     {buttonArrayBlind.map((x, index) => (

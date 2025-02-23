@@ -29,6 +29,7 @@ export const updatePlanViaje = (id, data) => handleRequest(apiGoTrip.put(`/PlanV
 export const createPlanViaje = (data) => handleRequest(apiGoTrip.post(`/PlanViaje`, data));
 export const activatePlanViaje = (id) => handleRequest(apiGoTrip.put(`/PlanViaje/${id}/activate`));
 export const inactivatePlanViaje = (id) => handleRequest(apiGoTrip.put(`/PlanViaje/${id}/inactivate`));
+export const getAllPlanViaje = () => handleRequest(apiGoTrip.get('/PlanViaje/GetAll'))
 
 export const uploadPuntoTuristicoImages = async (id, file) => {
   const formData = new FormData();

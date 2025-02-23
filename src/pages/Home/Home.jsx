@@ -144,9 +144,8 @@ const Home = () => {
 
   console.log(username);
 
-
   return (
-    currentUserBlind ?
+    !currentUserBlind ?
       <main className='flex flex-col justify-center items-center gap-10 p-4 w-full h-screen'>
         <h1 className='text-7xl text-center'>Bienvenidos a <br /> TUCUMÁN</h1>
         <div className='flex flex-col gap-4'>

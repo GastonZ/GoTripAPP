@@ -4,7 +4,7 @@ import 'react-calendar/dist/Calendar.css';
 import ButtonOptions from '../../components/ButtonOptions';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/outline';
-import { getActiveCategorias, getAllPuntosTuristicos, getAllEventos } from '../../service/goTripService';
+import { getActiveCategorias, getAllPuntosTuristicos, getAllEventos, createPlanViaje } from '../../service/goTripService';
 import ModalCustom from '../../components/ModalCustom';
 import { TrashIcon } from 'lucide-react';
 
@@ -23,6 +23,7 @@ const GoCalendar = () => {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [events, setEvents] = useState([]);
 
+  const goUserId = localStorage.getItem("userGoId");
 
   useEffect(() => {
     fetchCategorias();
@@ -136,7 +137,7 @@ const GoCalendar = () => {
     }
 
     const nuevoPlanViaje = {
-      usuarioId: 1,
+      usuarioId: goUserId,
       fechaInicio: value[0].toISOString(),
       fechaFin: value[1].toISOString(),
       descripcion: "Nuevo plan de viaje",
@@ -149,7 +150,10 @@ const GoCalendar = () => {
     };
 
     try {
-      await createPlanViaje(nuevoPlanViaje);
+      const response = await createPlanViaje(nuevoPlanViaje);
+
+      console.log(response);
+            
       alert("Plan de viaje creado con éxito.");
       navigate("/opciones");
     } catch (error) {
@@ -160,13 +164,13 @@ const GoCalendar = () => {
 
   const generateIframeUrl = async () => {
     if (selectedItems.length < 1) return;
-  
+
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userCoords = `${position.coords.latitude},${position.coords.longitude}`;
           const baseUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k";
-          
+
           const selectedCoordinates = selectedItems.map((key) => {
             const [type, id] = key.split("_");
             if (type === "punto") {
@@ -178,15 +182,15 @@ const GoCalendar = () => {
             }
             return null;
           }).filter(Boolean);
-  
+
           if (selectedCoordinates.length < 1) {
             reject("No hay coordenadas suficientes para generar el mapa.");
             return;
           }
-  
+
           const waypoints = selectedCoordinates.slice(0, -1).join("|");
           const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
-  
+
           const url = `${baseUrl}&origin=${userCoords}&destination=${finalDestination}&waypoints=${waypoints}&mode=driving`;
           resolve(url);
         },
@@ -197,7 +201,7 @@ const GoCalendar = () => {
       );
     });
   };
-  
+
   useEffect(() => {
     if (steps === 3 && selectedItems.length > 0) {
       generateIframeUrl()
@@ -244,7 +248,7 @@ const GoCalendar = () => {
               </div>
               <div className='flex justify-center bg-primary-blue p-6 border-none rounded-xl h-[500px]'>
                 <Calendar
-                  className='bg-primary-lightBlue border-none rounded-xl w-full transition-all'
+                  className='border-none rounded-xl w-full transition-all'
                   onChange={handleCalendarChange}
                   value={value}
                   selectRange={true}
@@ -256,6 +260,7 @@ const GoCalendar = () => {
         )}
         {steps === 1 && (
           <div className="mt-6">
+            <ArrowLeftCircleIcon className='mb-4 cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
             <p>Selecciona una categoría</p>
             <div className="flex flex-wrap justify-center gap-4">
               {categorias.map((category) => (
@@ -294,7 +299,10 @@ const GoCalendar = () => {
                 }
                 {/* Eventos */}
                 <div className="flex flex-col items-center mt-6 mb-4">
-                  <p>Eventos en esta categoría:</p>
+                  {events.filter(evento => evento.categoriaId === selectedCategory).length > 0 ?
+                    <p>Eventos en esta categoría:</p>
+                    : <></>
+                  }
                   <div className="flex flex-wrap justify-around gap-4">
                     {events.filter(evento => evento.categoriaId === selectedCategory).map((evento) => (
                       <div key={evento.id} className="flex justify-between items-center bg-gray-100 p-4 rounded-md w-[350px]">
@@ -326,7 +334,7 @@ const GoCalendar = () => {
               <h2 className="font-semibold text-xl">{selectedPunto.nombre}</h2>
               <p><strong>Descripción:</strong> {selectedPunto.descripcion}</p>
               <p><strong>Ubicación:</strong> {selectedPunto.latitud}, {selectedPunto.longitud}</p>
-              <img  src={'https://localhost:7070/' + selectedPunto.pathImagen} alt="" className='m-auto pt-4 w-[200px] h-[200px] object-cover' />
+              <img src={'https://localhost:7070/' + selectedPunto.pathImagen} alt="" className='m-auto pt-4 w-[200px] h-[200px] object-cover' />
             </div>
           </ModalCustom>
         )}
