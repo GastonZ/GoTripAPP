@@ -107,7 +107,7 @@ export default function GuiaTuristica() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
-    recognition.continuous = true;
+    recognition.continuous = false;  // 🔴 Se asegura de que no siga escuchando tras terminar
     recognition.interimResults = false;
 
     recognition.onstart = () => {
@@ -115,16 +115,21 @@ export default function GuiaTuristica() {
       hablar("Por favor, dime a dónde quieres ir.");
     };
 
-    recognition.onend = () => setBuscandoDestino(false);
-
     recognition.onresult = (event) => {
       const mensaje = event.results[event.results.length - 1][0].transcript.toLowerCase();
       console.log(`🎤 Usuario dijo: ${mensaje}`);
       socket.emit("encontrar_destino", { mensaje });
+
+      recognition.stop();  // 🔴 SE AGREGA AQUÍ PARA DESACTIVAR EL MICRÓFONO DESPUÉS DE HABLAR
+    };
+
+    recognition.onend = () => {
+      setBuscandoDestino(false);
     };
 
     recognition.start();
   };
+
 
   // 🚶 Función para iniciar el recorrido
   const comenzarRecorrido = () => {
@@ -177,13 +182,33 @@ export default function GuiaTuristica() {
         mensaje.includes("qué me puedes contar del destino")
       ) {
         socket.emit("detalles_destino");
+      } else if (
+        mensaje.includes("nuevo destino") ||
+        mensaje.includes("cambiar destino") ||
+        mensaje.includes("quiero ir a otro destino") ||
+        mensaje.includes("ir a otro destino") ||
+        mensaje.includes("buscar otro destino") ||
+        mensaje.includes("elegir otro destino") ||
+        mensaje.includes("nuevo punto turístico") ||
+        mensaje.includes("buscar nuevo punto turístico") ||
+        mensaje.includes("ir a nueva ubicación") ||
+        mensaje.includes("nueva ubicación") ||
+        mensaje.includes("nuevo lugar") ||
+        mensaje.includes("otro destino")
+      ) {
+        socket.emit("nuevo_destino");
+        // 🔹 Agregar un delay de 400ms antes de ejecutar "encontrarDestino"
+        setTimeout(() => {
+          encontrarDestino();
+        }, 600);
       } else {
-        hablar("No entendí el comando. Puedes decir 'siguiente paso', 'repetir paso' o preguntar sobre el destino.");
+        hablar("No entendí el comando. Puedes decir 'siguiente paso', 'repetir paso', 'detalles del destino' o 'nuevo destino'.");
       }
     };
 
     recognition.start();
   };
+
 
   // 🔊 Función para que la IA hable
   const hablar = (texto) => {
@@ -219,59 +244,129 @@ export default function GuiaTuristica() {
     hablarFragmento(0); // Iniciar la lectura desde el primer fragmento
   };
 
+  const verManualUsuario = () => {
+    const texto = `
+    Bienvenido al manual de usuario de la Guía Turística por IA.
+  
+    Para encontrar un destino, presiona el botón 'Encontrar Destino' y di en voz alta el nombre del lugar al que deseas ir. 
+    La IA procesará la información y te indicará si encontró un destino válido.
+  
+    Una vez que el destino haya sido encontrado, el botón 'Comenzar Recorrido' se habilitará.
+    Presiónalo para iniciar la navegación. La IA te dará instrucciones paso a paso para llegar a tu destino.
+  
+    Durante el recorrido, puedes interactuar con la IA usando el botón 'Hablar con la IA'. 
+    Tienes cuatro comandos disponibles:
+      - Di 'Siguiente paso' para escuchar la siguiente indicación del recorrido.
+      - Di 'Repetir paso' para volver a escuchar la última indicación.
+      - Di 'Detalles del destino' para obtener información sobre el lugar al que te diriges.
+      - Di 'Nuevo destino' para cancelar la ruta actual y seleccionar un nuevo destino.
+  
+    En caso de emergencia, puedes utilizar los siguientes botones:
+      - 'Llamar a Contacto de Emergencia': Llamará automáticamente a tu contacto de emergencia registrado.
+      - 'Enviar Mensaje de Emergencia': Enviará un mensaje con tu ubicación actual a tu contacto de emergencia.
+  
+    Para repetir esta información en cualquier momento, presiona nuevamente el botón 'Manual de Usuario'.
+  
+    Ahora puedes empezar a usar la Guía Turística por IA.
+    `;
+
+    // Dividimos el texto en fragmentos de hasta 200 caracteres sin cortar palabras
+    const fragmentos = texto.match(/.{1,200}(\s|$)/g);
+
+    const synth = window.speechSynthesis;
+    synth.cancel(); // Cancelar cualquier audio en progreso
+
+    let index = 0;
+
+    const hablarFragmento = () => {
+      if (index >= fragmentos.length) return; // Si terminamos todos los fragmentos, salir
+
+      const utterance = new SpeechSynthesisUtterance(fragmentos[index]);
+      utterance.lang = "es-ES";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      utterance.onend = () => {
+        index++; // Pasamos al siguiente fragmento
+        hablarFragmento(); // Llamamos la función para seguir con el siguiente fragmento
+      };
+
+      synth.speak(utterance);
+    };
+
+    hablarFragmento(); // Iniciar la lectura desde el primer fragmento
+  };
+
+
 
   return (
     <div className="flex flex-col items-center p-6 gap-6">
-      <div className="w-full max-w-md p-4 text-center border rounded shadow">
-        <h2 className="text-xl font-bold">Guía Turística por IA</h2>
+      <div className="w-full max-w-md p-6 text-center border rounded-lg shadow">
+        <h2 className="text-2xl font-bold">Guía Turística por IA</h2>
 
         {ubicacion && (
-          <p className="text-gray-500 mt-2">📍 Ubicación actual: {ubicacion.latitud}, {ubicacion.longitud}</p>
+          <p className="text-gray-500 mt-4 text-lg">
+            Ubicación actual: {ubicacion.latitud}, {ubicacion.longitud}
+          </p>
         )}
 
         {destino && (
-          <p className="text-green-500 mt-2">🎯 Destino: {destino.nombre} ({destino.latitud}, {destino.longitud})</p>
+          <p className="text-green-500 mt-4 text-lg font-semibold">
+            Destino: {destino.nombre} ({destino.latitud}, {destino.longitud})
+          </p>
         )}
+        {/* 📖 Botón para acceder al Manual de Usuario */}
 
-        {/* 🎤 Botón para encontrar destino por voz */}
+        <button
+          onClick={verManualUsuario}
+          className="w-full bg-purple-600 text-white text-lg font-semibold p-4 mt-4 rounded-lg"
+        >
+          MANUAL DE USUARIO
+        </button>
+
+        {/* Botón para encontrar destino por voz */}
         <button
           onClick={encontrarDestino}
-          className={`w-full ${buscandoDestino ? "bg-gray-500" : "bg-blue-500"} text-white p-2 mt-2 rounded`}
+          className={`w-full ${buscandoDestino ? "bg-gray-500" : "bg-blue-500"} text-white text-lg font-semibold p-4 mt-4 rounded-lg`}
         >
-          🎤 {buscandoDestino ? "Escuchando..." : "ENCONTRAR DESTINO"}
+          {buscandoDestino ? "Escuchando..." : "ENCONTRAR DESTINO"}
         </button>
 
-        {/* 🚶 Botón para comenzar recorrido */}
+        {/* Botón para comenzar recorrido */}
         <button
           onClick={comenzarRecorrido}
-          className={`w-full ${enRecorrido ? "bg-gray-500" : "bg-green-500"} text-white p-2 mt-2 rounded`}
+          className={`w-full ${enRecorrido ? "bg-gray-500" : "bg-green-500"} text-white text-lg font-semibold p-4 mt-4 rounded-lg`}
           disabled={!destino || ruta.length === 0}
         >
-          🚶 {enRecorrido ? "Recorrido en curso..." : "COMENZAR RECORRIDO"}
+          {enRecorrido ? "Recorrido en curso..." : "COMENZAR RECORRIDO"}
         </button>
 
-        {/* 🎤 Botón para escuchar comandos de voz */}
+        {/* Botón para escuchar comandos de voz */}
         <button
           onClick={escucharComando}
-          className="w-full bg-yellow-500 text-white p-2 mt-2 rounded"
+          className="w-full bg-yellow-500 text-white text-lg font-semibold p-4 mt-4 rounded-lg"
         >
-          🎤 Hablar con la IA
+          HABLAR CON LA IA
         </button>
 
+        {/* Botón para llamada de emergencia */}
         <button
           onClick={llamarEmergencia}
-          className="w-full bg-red-500 text-white p-2 mt-4 rounded font-bold"
+          className="w-full bg-red-600 text-white text-lg font-bold p-4 mt-6 rounded-lg"
         >
-          📞 LLAMAR A CONTACTO DE EMERGENCIA
+          LLAMAR A CONTACTO DE EMERGENCIA
         </button>
 
+        {/* Botón para enviar mensaje de emergencia */}
         <button
           onClick={enviarMensajeWhatsApp}
-          className="w-full bg-blue-600 text-white p-2 mt-2 rounded"
+          className="w-full bg-blue-700 text-white text-lg font-semibold p-4 mt-4 rounded-lg"
         >
-          📩 ENVIAR MENSAJE DE EMERGENCIA
+          ENVIAR MENSAJE DE EMERGENCIA
         </button>
       </div>
     </div>
   );
+
 }
