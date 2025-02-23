@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 
-PROD
+//PROD
 const socket = io("https://gotripapp-novidente-production-fbbf.up.railway.app/", {
   transports: ["websocket", "polling"],
 });
