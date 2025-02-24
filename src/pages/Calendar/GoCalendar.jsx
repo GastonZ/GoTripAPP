@@ -75,27 +75,32 @@ const GoCalendar = () => {
     }
   };
 
+  console.log(selectedItemsDetails.length);
 
+  console.log(steps);
+  
+  
   const handleNextStep = () => {
     if (steps === 0) {
       localStorage.setItem('selectedDates', JSON.stringify(value));
     }
 
     if (steps === 1 && !selectedCategory) {
-      alert('Elige una categoría');
+      alert('Elige una categoría antes de continuar.');
       return;
     }
 
-    if (steps === 2 && selectedItems.length <= 0) {
-      alert('Elige al menos un punto turístico');
-      return;
-    }
-    if (steps === 2) {
-      localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+    if (steps === 1) {
+      if (selectedItemsDetails.length === 0) {
+        alert('Debes seleccionar al menos un punto turístico o evento antes de continuar.');
+        return;
+      }
+      localStorage.setItem('selectedItems', JSON.stringify(selectedItemsDetails));
     }
 
     setSteps(steps + 1);
-  };
+};
+
 
   const handlePreviusStep = () => {
     setSteps(steps - 1);
