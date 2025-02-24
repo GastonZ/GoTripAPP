@@ -28,8 +28,22 @@ import {
   uploadEventImages
 } from '../../service/goTripService';
 import { Image } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPanel = () => {
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+      const isAdmin = localStorage.getItem('isAdmin') === true;
+
+      if (isAdmin) {
+        console.log('Todo bien es admin')
+      } else {
+        navigate('/opciones')
+      }
+  }, [])
+
   const [selectedItem, setSelectedItem] = useState('userManagement');
 
   const [users, setUsers] = useState([]);

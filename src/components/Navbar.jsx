@@ -1,51 +1,46 @@
 import { useState, useEffect } from "react";
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { icons } from "../assets";
 import { Link } from "react-router-dom";
 
 export default function Navbar() {
-  // Estados para manejar el usuario autenticado
-  const [userName, setUserName] = useState(localStorage.getItem("userName"));
+  const [userName, setUserName] = useState(localStorage.getItem("userName") || "");
   const [isAuthenticated, setIsAuthenticated] = useState(!!userName);
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(localStorage.getItem("isAdmin") === "true");
 
-  // Efecto para actualizar cuando cambian los datos en localStorage
   useEffect(() => {
-    setIsAdmin(localStorage.getItem("isAdmin"))
-
     const handleStorageChange = () => {
-      const storedUserName = localStorage.getItem("userName");
+      const storedUserName = localStorage.getItem("userName") || "";
+      const adminStatus = localStorage.getItem("isAdmin") === "true"; 
       setUserName(storedUserName);
       setIsAuthenticated(!!storedUserName);
+      setIsAdmin(adminStatus);
     };
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Menú de navegación con visibilidad según autenticación
   const navigation = [
     { name: "Home", href: "/", current: false, show: true },
-    { name: "Iniciar sesión", href: "/iniciar", current: false, show: userName == '' },
+    { name: "Iniciar sesión", href: "/iniciar", current: false, show: !isAuthenticated },
     { name: "Opciones", href: "/opciones", current: false, show: isAuthenticated },
   ];
 
-  // Función para cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem("userName");
     localStorage.removeItem("isNoVidente");
     localStorage.removeItem("isAdmin");
-    setUserName(null);
+    setUserName("");
     setIsAuthenticated(false);
-    window.location.href = "/"; // Redirigir a home después de logout
+    setIsAdmin(false);
+    window.location.href = "/";
   };
 
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
   }
-
-  console.log(isAdmin);
 
   return (
     <Disclosure as="nav" className="bg-primary-blue">
@@ -86,9 +81,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Notificaciones y Menú Usuario */}
           <div className="right-0 sm:static absolute inset-y-0 sm:inset-auto flex items-center sm:ml-6 pr-2 sm:pr-0">
-            {/* Menú usuario solo si está autenticado */}
             {isAuthenticated && (
               <Menu as="div" className="relative ml-3">
                 <div>
@@ -102,19 +95,15 @@ export default function Navbar() {
                   transition
                   className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md focus:outline-none ring-1 ring-black w-48 data-[closed]:scale-95 origin-top-right transition data-[enter]:duration-100 data-[leave]:duration-75 data-[leave]:ease-in data-[enter]:ease-out data-[closed]:transform"
                 >
-                  {
-                    isAdmin ? (
-                      <MenuItem>
-                        <Link to={"/admin"}>
-                          <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                            Panel admin
-                          </p>
-                        </Link>
-                      </MenuItem>
-                    )
-                      :
-                      <></>
-                  }
+                  {isAdmin && (
+                    <MenuItem>
+                      <Link to={"/admin"}>
+                        <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
+                          Panel admin
+                        </p>
+                      </Link>
+                    </MenuItem>
+                  )}
                   <MenuItem>
                     <button onClick={handleLogout} className="block data-[focus]:bg-gray-100 px-4 py-2 w-full text-black text-sm text-left">
                       Cerrar sesión
@@ -127,7 +116,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Menú móvil */}
       <DisclosurePanel className="sm:hidden">
         <div className="space-y-1 px-2 pt-2 pb-3">
           {navigation.map((item) => (
