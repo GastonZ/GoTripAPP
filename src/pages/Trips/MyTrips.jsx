@@ -147,9 +147,9 @@ const MyTrips = () => {
                 Ver mapa a pie
               </button>
 
-              <button className="bg-yellow-500 p-2 rounded-lg w-max text-white">
+{/*               <button className="bg-yellow-500 p-2 rounded-lg w-max text-white">
                 Editar plan de viaje
-              </button>
+              </button> */}
 
               <button
                 onClick={() => handleDeleteTrip(trip.id)}
