@@ -8,9 +8,12 @@ export default function Navbar() {
   // Estados para manejar el usuario autenticado
   const [userName, setUserName] = useState(localStorage.getItem("userName"));
   const [isAuthenticated, setIsAuthenticated] = useState(!!userName);
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // Efecto para actualizar cuando cambian los datos en localStorage
   useEffect(() => {
+    setIsAdmin(localStorage.getItem("isAdmin"))
+
     const handleStorageChange = () => {
       const storedUserName = localStorage.getItem("userName");
       setUserName(storedUserName);
@@ -42,7 +45,7 @@ export default function Navbar() {
     return classes.filter(Boolean).join(" ");
   }
 
-  const isAdmin = localStorage.getItem("isAdmin")
+  console.log(isAdmin);
 
   return (
     <Disclosure as="nav" className="bg-primary-blue">
@@ -100,7 +103,7 @@ export default function Navbar() {
                   className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md focus:outline-none ring-1 ring-black w-48 data-[closed]:scale-95 origin-top-right transition data-[enter]:duration-100 data-[leave]:duration-75 data-[leave]:ease-in data-[enter]:ease-out data-[closed]:transform"
                 >
                   {
-                    isAdmin ?
+                    isAdmin ? (
                       <MenuItem>
                         <Link to={"/admin"}>
                           <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
@@ -108,6 +111,7 @@ export default function Navbar() {
                           </p>
                         </Link>
                       </MenuItem>
+                    )
                       :
                       <></>
                   }
