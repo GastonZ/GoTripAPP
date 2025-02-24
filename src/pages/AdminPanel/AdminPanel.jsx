@@ -24,7 +24,8 @@ import {
   inactivateEvento,
   activateEvento,
   uploadPuntoTuristicoImages,
-  createUsuario
+  createUsuario,
+  uploadEventImages
 } from '../../service/goTripService';
 import { Image } from 'lucide-react';
 
@@ -234,13 +235,44 @@ const AdminPanel = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedPuntoId, setSelectedPuntoId] = useState(null);
 
+
   const handleOpenImageModal = (id) => {
     setSelectedPuntoId(id);
     setOpenModalImage(true);
   };
 
+  const [selectedEventId, setSelectedEventId] = useState(null)
+  const [openEventImageModal, setOpenEventImageModal] = useState(false)
+  const [selectedEventFile, setSelectedEventFile] = useState(null);
+
+  const handleOpenImageEventModal = (id) => {
+    setSelectedEventId(id)
+    setOpenEventImageModal(true)
+  }
+
+  const handleEventFileChange = (event) => {
+    setSelectedEventFile(event.target.files[0])
+  }
+
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
+  };
+
+  const handleUploadImageEvent = async () => {
+    if (!selectedEventFile || !selectedEventId) {
+      alert("Por favor selecciona una imagen.");
+      return;
+    }
+
+    try {
+      await uploadEventImages(selectedEventId, selectedEventFile);
+      fetchPuntosTuristicos()
+      alert("Imagen subida con éxito.");
+      setOpenModalImage(false);
+      setSelectedFile(null);
+    } catch (error) {
+      alert("Error al subir la imagen.");
+    }
   };
 
   const handleUploadImage = async () => {
@@ -970,6 +1002,7 @@ const AdminPanel = () => {
                     <p><strong>Fecha de inicio:</strong> {new Date(event.fechaInicio).toLocaleDateString()}</p>
                     <p><strong>Fecha de fin:</strong> {new Date(event.fechaFin).toLocaleDateString()}</p>
                     <p><strong>Coordenadas:</strong> {event.latitud}, {event.longitud}</p>
+                    <p><strong>Image path:</strong>{event.pathImagen}</p>
                     <div className="flex gap-4 mt-2">
                       <button onClick={() => handleEditEvent(event)} className="bg-yellow-500 px-4 py-2 rounded-md text-white">
                         <PencilIcon className="w-6 h-6" />
@@ -983,10 +1016,32 @@ const AdminPanel = () => {
                           <ArrowPathIcon className="w-6 h-6" />
                         </button>
                       )}
+                      <button onClick={() => handleOpenImageEventModal(event.id)} className="bg-green-500 px-4 py-2 rounded-md text-white">
+                        <Image className='w-6 h-6' />
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
+            )}
+
+            {openEventImageModal && (
+              <ModalCustom
+                introText="Subir imagen al evento"
+                radius={10}
+                modalState={openEventImageModal}
+                handleModalClose={() => setOpenEventImageModal(false)}
+              >
+                <div className="flex flex-col gap-4 p-6">
+                  <input type="file" accept="image/*" onChange={handleEventFileChange} />
+                  <button
+                    onClick={handleUploadImageEvent}
+                    className="bg-primary-darkBlue mt-4 p-2 rounded-lg text-white"
+                  >
+                    Subir Imagen
+                  </button>
+                </div>
+              </ModalCustom>
             )}
 
             {/* Modal para agregar/editar evento */}

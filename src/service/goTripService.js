@@ -48,6 +48,23 @@ export const uploadPuntoTuristicoImages = async (id, file) => {
   }
 };
 
+export const uploadEventImages = async (id, file) => {
+  const formData = new FormData();
+  formData.append("images", file);
+
+  try {
+    const response = await apiGoTrip.post(`/Evento/PutImages?idEvento=${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error subiendo la imagen:", error);
+    throw error;
+  }
+};
+
 
 export const getAllPuntosTuristicos = () => handleRequest(apiGoTrip.get(`/PuntoTuristico/GetAll`));
 export const getPuntoTuristico = (id) => handleRequest(apiGoTrip.get(`/PuntoTuristico/${id}`));
