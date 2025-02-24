@@ -337,7 +337,7 @@ const AdminPanel = () => {
       await uploadEventImages(selectedEventId, selectedEventFile);
       fetchEventos()
       alert("Imagen subida con éxito.");
-      setOpenModalImage(false);
+      setOpenEventImageModal(false);
       setSelectedFile(null);
     } catch (error) {
       alert("Error al subir la imagen.");
