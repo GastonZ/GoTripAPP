@@ -16,7 +16,7 @@ export default function Navbar() {
       setUserName(storedUserName);
       setIsAuthenticated(!!storedUserName);
     };
-  
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
@@ -32,6 +32,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("userName");
     localStorage.removeItem("isNoVidente");
+    localStorage.removeItem("isAdmin");
     setUserName(null);
     setIsAuthenticated(false);
     window.location.href = "/"; // Redirigir a home después de logout
@@ -40,6 +41,8 @@ export default function Navbar() {
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
   }
+
+  const isAdmin = localStorage.getItem("isAdmin")
 
   return (
     <Disclosure as="nav" className="bg-primary-blue">
@@ -96,13 +99,18 @@ export default function Navbar() {
                   transition
                   className="right-0 z-10 absolute bg-white ring-opacity-5 data-[closed]:opacity-0 shadow-lg mt-2 py-1 rounded-md focus:outline-none ring-1 ring-black w-48 data-[closed]:scale-95 origin-top-right transition data-[enter]:duration-100 data-[leave]:duration-75 data-[leave]:ease-in data-[enter]:ease-out data-[closed]:transform"
                 >
-                  <MenuItem>
-                    <Link to={"/admin"}>
-                      <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
-                        Panel admin
-                      </p>
-                    </Link>
-                  </MenuItem>
+                  {
+                    isAdmin ?
+                      <MenuItem>
+                        <Link to={"/admin"}>
+                          <p className="block data-[focus]:bg-gray-100 px-4 py-2 text-black text-sm">
+                            Panel admin
+                          </p>
+                        </Link>
+                      </MenuItem>
+                      :
+                      <></>
+                  }
                   <MenuItem>
                     <button onClick={handleLogout} className="block data-[focus]:bg-gray-100 px-4 py-2 w-full text-black text-sm text-left">
                       Cerrar sesión

@@ -26,6 +26,7 @@ const Login = () => {
             
             localStorage.setItem("userName", response.userName);
             localStorage.setItem("isNoVidente", response.isNoVidente);
+            localStorage.setItem("isAdmin", response.isAdmin)
             localStorage.setItem("userGoId", response.userId)
             window.dispatchEvent(new Event("storage"));
       
