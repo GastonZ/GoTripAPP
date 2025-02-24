@@ -13,6 +13,9 @@ const GoCalendar = () => {
   const [value, setValue] = useState([new Date(), new Date()]);
   const [steps, setSteps] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
+
+  const [selectedItemsDetails, setSelectedItemsDetails] = useState([]);
+
   const [selectedItemsCoords, setSelectedItemsCoords] = useState([]);
   const [iframeUrl, setIframeUrl] = useState('');
   const [categorias, setCategorias] = useState([]);
@@ -106,18 +109,19 @@ const GoCalendar = () => {
 
   const handleCheckboxChange = (item, type) => {
     const key = `${type}_${item.id}`;
+
     setSelectedItems((prev) =>
       prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]
     );
 
-    if (type === "punto") {
-      const coordString = `${item.latitud},${item.longitud}`;
-      setSelectedItemsCoords((prevCoords) =>
-        prevCoords.includes(coordString)
-          ? prevCoords.filter(coord => coord !== coordString)
-          : [...prevCoords, coordString]
-      );
-    }
+    setSelectedItemsDetails((prevDetails) => {
+      const exists = prevDetails.some((detail) => detail.key === key);
+      if (exists) {
+        return prevDetails.filter(detail => detail.key !== key);
+      } else {
+        return [...prevDetails, { key, ...item }];
+      }
+    });
   };
 
   const handleDeletePoint = (id, type) => {
@@ -125,11 +129,7 @@ const GoCalendar = () => {
 
     setSelectedItems((prev) => prev.filter(item => item !== key));
 
-    if (type === "punto") {
-      setSelectedItemsCoords((prevCoords) =>
-        prevCoords.filter(coord => !coord.includes(id))
-      );
-    }
+    setSelectedItemsDetails((prevDetails) => prevDetails.filter(detail => detail.key !== key));
   };
 
   const handleConfirmTrip = async () => {
@@ -348,58 +348,52 @@ const GoCalendar = () => {
         {steps === 2 && (
           <div className='flex flex-col items-center mt-10 w-full'>
             <ArrowLeftCircleIcon className='mb-4 cursor-pointer' onClick={handlePreviusStep} height={24} width={24} />
-
             <h2 className="mb-4 text-3xl">Puntos y eventos seleccionados</h2>
 
-            {selectedItems.length === 0 ? (
-              <p className="text-red-500">No has seleccionado ningún punto turístico ni evento.</p>
-            ) : (
+            <div className='flex flex-col items-center mt-10 w-full'>
               <div className='flex flex-col gap-4 bg-primary-lightBlue p-8 rounded-md w-full max-w-xl'>
-                {/* 🔹 Puntos turísticos seleccionados */}
-                {selectedItems.filter(key => key.startsWith("punto_")).map((key) => {
-                  const puntoId = parseInt(key.split("_")[1]);
-                  const punto = puntosTuristicos.find(pt => pt.id === puntoId);
 
-                  return (
-                    punto && (
-                      <div key={punto.id} className='flex justify-between items-center bg-primary-blue px-6 py-2 rounded-md text-white'>
-                        <span className='font-semibold text-xl'>{punto.nombre}</span>
-                        <div className="flex items-center space-x-2">
-                          <button className='underline' onClick={() => handleOpenModal(punto)}>Ver detalle</button>
-                          <TrashIcon className='w-6 h-6 cursor-pointer' onClick={() => handleDeletePoint(punto.id, "punto")} />
+                {/* Puntos Turísticos */}
+                {selectedItemsDetails.some(item => item.key.startsWith("punto_")) && (
+                  <>
+                    <h3 className='font-semibold text-white text-2xl'>Puntos Turísticos</h3>
+                    {selectedItemsDetails
+                      .filter(item => item.key.startsWith("punto_"))
+                      .map((item) => (
+                        <div key={item.key} className='flex justify-between items-center bg-primary-blue px-6 py-2 rounded-md text-white'>
+                          <span className='font-semibold text-xl'>{item.nombre}</span>
+                          <TrashIcon className='w-6 h-6 cursor-pointer' onClick={() => handleDeletePoint(item.id, "punto")} />
                         </div>
-                      </div>
-                    )
-                  );
-                })}
+                      ))}
+                  </>
+                )}
 
-                {/* 🔹 Eventos seleccionados */}
-                {selectedItems.filter(key => key.startsWith("evento_")).map((key) => {
-                  const eventoId = parseInt(key.split("_")[1]);
-                  const evento = events.find(ev => ev.id === eventoId);
-
-                  return (
-                    evento && (
-                      <div key={evento.id} className='flex justify-between items-center bg-gray-500 px-6 py-2 rounded-md text-white'>
-                        <span className='font-semibold text-xl'>{evento.nombre}</span>
-                        <div className="flex items-center space-x-2">
-                          <button className='underline' onClick={() => handleOpenModal(evento)}>Ver detalle</button>
-                          <TrashIcon className='w-6 h-6 cursor-pointer' onClick={() => handleDeletePoint(evento.id, "evento")} />
+                {/* Eventos */}
+                {selectedItemsDetails.some(item => item.key.startsWith("evento_")) && (
+                  <>
+                    <h3 className='mt-6 font-semibold text-white text-2xl'>Eventos</h3>
+                    {selectedItemsDetails
+                      .filter(item => item.key.startsWith("evento_"))
+                      .map((item) => (
+                        <div key={item.key} className='flex justify-between items-center bg-gray-500 px-6 py-2 rounded-md text-white'>
+                          <span className='font-semibold text-xl'>{item.nombre}</span>
+                          <TrashIcon className='w-6 h-6 cursor-pointer' onClick={() => handleDeletePoint(item.id, "evento")} />
                         </div>
-                      </div>
-                    )
-                  );
-                })}
+                      ))}
+                  </>
+                )}
+
               </div>
-            )}
+            </div>
 
-            {selectedItems.length > 0 && (
+            {selectedItemsDetails.length > 0 && (
               <div className='mt-5'>
                 <ButtonOptions onClick={handleNextStep} text={'Confirmar plan de viaje'} />
               </div>
             )}
           </div>
         )}
+
 
 
         {/* Step 3: Mostrar mapa con los puntos seleccionados */}
