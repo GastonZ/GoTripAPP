@@ -985,7 +985,7 @@ const AdminPanel = () => {
               <div className="text-gray-600">Sin categorías creadas</div>
             ) : (
               <div className="flex flex-col gap-4">
-                {categorias.map((category) => (
+                {categorias.filter(cat => cat.state === 1).map((category) => (
                   <div key={category.id} className="flex justify-between items-center bg-primary-blue p-4 rounded-lg w-max">
                     <span className="text-white text-2xl">{category.descripcion}</span>
                     <div className="flex pl-4">
