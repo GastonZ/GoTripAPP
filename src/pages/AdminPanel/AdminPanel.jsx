@@ -34,15 +34,15 @@ const AdminPanel = () => {
 
   const navigate = useNavigate()
 
-  useEffect(() => {
+/*   useEffect(() => {
       const isAdmin = localStorage.getItem('isAdmin') === true;
 
-      if (isAdmin) {
+      if (isAdmin === true) {
         console.log('Todo bien es admin')
       } else {
         navigate('/opciones')
       }
-  }, [])
+  }, []) */
 
   const [selectedItem, setSelectedItem] = useState('userManagement');
 
