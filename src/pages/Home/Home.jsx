@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { icons } from '../../assets'
 import { Link } from 'react-router-dom'
+import Carrusel from '../../components/Carrusel';
 
 const Home = () => {
 
@@ -146,7 +147,8 @@ const Home = () => {
 
   return (
     currentUserBlind && !currentUserBlind ?
-      <main className='flex flex-col justify-center items-center gap-10 p-4 w-full h-screen'>
+      <main className='flex flex-col justify-center items-center gap-10 p-4 w-full min-h-screen'>
+
         <h1 className='text-7xl text-center'>Bienvenidos a <br /> TUCUMÁN</h1>
         <div className='flex flex-col gap-4'>
           {username !== '' ? <></> :
@@ -160,21 +162,17 @@ const Home = () => {
         </div>
       </main>
       :
-      <main className='flex justify-center items-center bg-background-navy p-8 h-screen'>
-        <section className='hidden lg:block relative w-1/2'>
-          <img className='rounded-full w-[500px] h-[500px] object-cover' src={icons.tucuman} alt="Imágen de Tucumán" />
-          <img className='hidden xl:block top-[250px] right-[300px] absolute rounded-full w-[350px] h-[350px] object-cover' src={icons.casaHistorica} alt="Imágen de Tucumán" />
-        </section>
-        <section className='flex flex-col justify-center items-center gap-6 h-screen'>
+      <main className='flex flex-wrap justify-center items-center gap-10 bg-background-navy min-h-screen'>
+        <section className='flex flex-col justify-center items-center gap-6 mt-6'>
           <h1 className='text-[60px] sm:text-[90px] text-center'>Bienvenidos a <br /> <strong className='uppercase'>Tucumán</strong> </h1>
           <h2 className='text-3xl'>Comenzar a planear tu viaje</h2>
           <Link to={'/iniciar'}>
             {username !== '' ? <></> : <button className='bg-primary-blue px-6 py-4 rounded-2xl text-white text-2xl'>Iniciar sesión</button>}
           </Link>
           <p className='text-2xl'>
-            {/* Additional content */}
           </p>
         </section>
+        <Carrusel />
       </main>
   );
 }

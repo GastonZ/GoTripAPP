@@ -11,6 +11,13 @@ import startIcon from './start_icon.png';
 import touristIcon from './tourist_icon.png';
 import tripIcon from './trip_icon.png';
 
+import carruselImg1 from './carruselImgs/img1.jpg'
+import carruselImg2 from './carruselImgs/img2.jpg'
+import carruselImg3 from './carruselImgs/img3.jpg'
+import carruselImg4 from './carruselImgs/img4.jpg'
+import carruselImg5 from './carruselImgs/img5.jpg'
+import carruselImg6 from './carruselImgs/img6.jpg'
+
 export const icons = {
     gotripLogo,
     globeCouple,
@@ -22,6 +29,15 @@ export const icons = {
     touristIcon,
     tripIcon,
     casaHistorica
+}
+
+export const carruselImgs = {
+    carruselImg1,
+    carruselImg2,
+    carruselImg3,
+    carruselImg4,
+    carruselImg5,
+    carruselImg6
 }
 
 const users = [
