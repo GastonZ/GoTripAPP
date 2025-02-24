@@ -99,6 +99,9 @@ const MyTrips = () => {
 
     return `${baseUrl}&origin=${origin}&destination=${finalDestination}${waypoints ? `&waypoints=${waypoints}` : ""}&mode=${mode}`;
   };
+
+  console.log(myTrips[0]);
+  
   
   return (
     <main className="flex flex-wrap justify-center items-center h-screen">
@@ -113,6 +116,9 @@ const MyTrips = () => {
       ) : (
         myTrips.map((trip, index) => (
           <div key={trip.id} className="flex flex-col bg-white shadow-lg mb-6 p-4 rounded-lg w-full max-w-md">
+            <h2 className="my-4 font-semibold text-lg">
+              {trip.descripcion}
+            </h2>
             <MyTripsCard
               travelPoints={trip.lineaPlanViaje.map((linea) =>
                 linea.puntoTuristico

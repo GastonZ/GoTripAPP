@@ -14,6 +14,7 @@ const GoCalendar = () => {
   const [value, setValue] = useState([new Date(), new Date()]);
   const [steps, setSteps] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [description, setDescription] = useState("")
 
   const [selectedItemsDetails, setSelectedItemsDetails] = useState([]);
 
@@ -75,11 +76,6 @@ const GoCalendar = () => {
     }
   };
 
-  console.log(selectedItemsDetails.length);
-
-  console.log(steps);
-  
-  
   const handleNextStep = () => {
     if (steps === 0) {
       localStorage.setItem('selectedDates', JSON.stringify(value));
@@ -99,7 +95,7 @@ const GoCalendar = () => {
     }
 
     setSteps(steps + 1);
-};
+  };
 
 
   const handlePreviusStep = () => {
@@ -153,7 +149,7 @@ const GoCalendar = () => {
       usuarioId: goUserId,
       fechaInicio: value[0].toISOString(),
       fechaFin: value[1].toISOString(),
-      descripcion: "Nuevo plan de viaje",
+      descripcion: description,
       lineaPlanViaje: selectedItems.map((key) => {
         const [type, id] = key.split("_");
         return type === "punto"
@@ -182,10 +178,10 @@ const GoCalendar = () => {
         reject("No se pudo obtener la ubicación del usuario.");
         return;
       }
-  
+
       const userCoords = `${coords.latitude},${coords.longitude}`;
       const baseUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k";
-  
+
       const selectedCoordinates = selectedItems.map((key) => {
         const [type, id] = key.split("_");
         if (type === "punto") {
@@ -197,22 +193,22 @@ const GoCalendar = () => {
         }
         return null;
       }).filter(Boolean);
-  
+
       if (selectedCoordinates.length < 1) {
         reject("No hay ubicaciones suficientes para generar el mapa.");
         return;
       }
-  
+
       const waypoints = selectedCoordinates.length > 1 ? selectedCoordinates.slice(0, -1).join("|") : "";
       const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
-  
+
       const url = `${baseUrl}&origin=${userCoords}&destination=${finalDestination}${waypoints ? `&waypoints=${waypoints}` : ""}&mode=${mode}`;
-  
+
       console.log("URL del mapa generada:", url);
       resolve(url);
     });
   };
-  
+
   // Cuando pasas al paso 3, generamos el mapa
   useEffect(() => {
     if (steps === 3 && selectedItemsDetails.length > 0) {
@@ -246,6 +242,10 @@ const GoCalendar = () => {
             <ArrowLeftCircleIcon className='cursor-pointer' onClick={() => navigate('/opciones')} height={24} width={24} />
             <div className='flex items-center'>
               <div className='flex flex-col justify-center items-start gap-4 w-[400px]'>
+                <label className='text-lg'>
+                  Descripción
+                </label>
+                  <input onChange={(e) => setDescription(e.target.value)} className='focus:bg-blue-300 px-4 rounded-sm outline-none w-[250px] h-10 transition-all' type="text" />
                 <div className='flex flex-col gap-1'>
                   <p>Fecha de inicio</p>
                   <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
