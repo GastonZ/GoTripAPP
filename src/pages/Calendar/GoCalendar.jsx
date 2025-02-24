@@ -284,16 +284,10 @@ const GoCalendar = () => {
               <>
                 {/* Puntos turísticos */}
                 <div className="flex flex-col items-center mt-6 mb-4">
-<<<<<<< HEAD
                   {puntosTuristicos.filter(punto => punto.categoriaId === selectedCategory).length > 0 ?
                     <p>Puntos turísticos en esta categoría:</p>
                     :
                     <></>
-=======
-                  {puntosTuristicos.filter(pt => pt.categoriaId === selectedCategory).length > 0 ?
-                    <p>Puntos turísticos en esta categoría:</p>
-                    : <></>
->>>>>>> 6fde99d36e82fe032f719a96345b1d96d2dd3892
                   }
                   <div className="flex flex-wrap justify-around gap-4">
                     {puntosTuristicos.map((punto) => (
