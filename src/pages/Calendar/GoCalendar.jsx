@@ -284,10 +284,16 @@ const GoCalendar = () => {
               <>
                 {/* Puntos turísticos */}
                 <div className="flex flex-col items-center mt-6 mb-4">
+<<<<<<< HEAD
                   {puntosTuristicos.filter(punto => punto.categoriaId === selectedCategory).length > 0 ?
                     <p>Puntos turísticos en esta categoría:</p>
                     :
                     <></>
+=======
+                  {puntosTuristicos.filter(pt => pt.categoriaId === selectedCategory).length > 0 ?
+                    <p>Puntos turísticos en esta categoría:</p>
+                    : <></>
+>>>>>>> 6fde99d36e82fe032f719a96345b1d96d2dd3892
                   }
                   <div className="flex flex-wrap justify-around gap-4">
                     {puntosTuristicos.map((punto) => (
@@ -340,12 +346,23 @@ const GoCalendar = () => {
         )}
 
         {openModal && (
-          <ModalCustom radius={10} introText="Detalles del Punto Turístico" modalState={openModal} handleModalClose={() => setOpenModal(false)}>
+          <ModalCustom radius={10}
+            introText={selectedPunto.fechaInicio ? "Detalles del Evento" : "Detalles del Punto Turístico"}
+            modalState={openModal} handleModalClose={() => setOpenModal(false)}>
             <div className="p-4">
               <h2 className="font-semibold text-xl">{selectedPunto.nombre}</h2>
               <p><strong>Descripción:</strong> {selectedPunto.descripcion}</p>
               <p><strong>Ubicación:</strong> {selectedPunto.latitud}, {selectedPunto.longitud}</p>
-              <img src={'https://localhost:7070/' + selectedPunto.pathImagen} alt="" className='m-auto pt-4 w-[200px] h-[200px] object-cover' />
+              {selectedPunto.fechaInicio ? (
+                <p><strong>Fechas: </strong>Del {new Date(selectedPunto.fechaInicio).toLocaleDateString()} al {new Date(selectedPunto.fechaFin).toLocaleDateString()}</p>
+              ) : null}
+              {selectedPunto.pathImagen ? (
+                <img
+                  src={`https://localhost:7070/${selectedPunto.pathImagen}`}
+                  alt=""
+                  className='m-auto pt-4 w-[200px] h-[200px] object-cover'
+                />
+              ) : null}
             </div>
           </ModalCustom>
         )}

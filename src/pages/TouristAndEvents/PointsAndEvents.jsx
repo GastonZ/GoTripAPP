@@ -6,14 +6,21 @@ const PointsAndEvents = () => {
     const [events, setEvents] = useState([]);
     const [puntosTuristicos, setPuntosTuristicos] = useState([]);
     const [categorias, setCategorias] = useState([]);
+    const [selectedPunto, setSelectedPunto] = useState(null);
     const [openModal, setOpenModal] = useState(false);
-    const [selectedItem, setSelectedItem] = useState(null);
+    const [modalTop, setModalTop] = useState(0);
 
     useEffect(() => {
         fetchPuntosTuristicos();
         fetchEventos();
         fetchCategorias();
     }, []);
+
+    useEffect(() => {
+        if (openModal) {
+           window.scrollTo({top:0, behavior: "smooth"});
+        }
+    }, [openModal]);
 
     const fetchPuntosTuristicos = async () => {
         try {
@@ -42,8 +49,8 @@ const PointsAndEvents = () => {
         }
     };
 
-    const handleOpenModal = (item) => {
-        setSelectedItem(item);
+    const handleOpenModal = (punto) => {
+        setSelectedPunto(punto);
         setOpenModal(true);
     };
 
@@ -52,88 +59,103 @@ const PointsAndEvents = () => {
             {/* 🔹 Puntos Turísticos */}
             <span className='mb-4 font-semibold text-4xl'>Puntos Turísticos</span>
 
-            <div className='flex flex-wrap gap-4'>
-                {categorias.length === 0 ? (
-                    <p className="text-gray-500">No hay categorías disponibles</p>
-                ) : (
-                    categorias.map((categoria) => {
-                        const puntosDeCategoria = puntosTuristicos.filter(pt => pt.categoriaId === categoria.id);
+            {/* Mostrar Puntos Turísticos separados por categoría */}
+            <div className='gap-6 grid grid-cols-1 md:grid-cols-2'>
+                {categorias.map((categoria) => {
+                    const puntosDeCategoria = puntosTuristicos.filter(pt => pt.categoriaId === categoria.id);
+                    if (puntosDeCategoria.length === 0) return null;
+                    return (
+                        <div key={categoria.id} className='bg-primary-blue p-6 rounded-lg w-full'>
+                            <h2 className='mb-4 font-semibold text-white text-2xl'>{categoria.descripcion}</h2>
 
-                        return (
-                            <div key={categoria.id} className='bg-primary-blue p-6 rounded-lg w-full md:w-auto'>
-                                <h2 className='font-semibold text-white text-2xl'>{categoria.descripcion}</h2>
-                                {puntosDeCategoria.length === 0 ? (
-                                    <p className="mt-2 text-white text-sm">No hay puntos turísticos en esta categoría</p>
-                                ) : (
-                                    <ul className='flex flex-col gap-2 mt-2'>
-                                        {puntosDeCategoria.map((punto) => (
-                                            <li key={punto.id} className='flex justify-between items-center text-white text-base'>
-                                                {punto.nombre}
-                                                <button
-                                                    className="bg-white ml-4 px-3 py-1 rounded-md text-primary-blue text-sm"
-                                                    onClick={() => handleOpenModal(punto)}
-                                                >
-                                                    Ver detalle
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                            {/* Contenedor de puntos turísticos con tres por fila */}
+                            <div className='gap-4 grid grid-cols-1 md:grid-cols-3'>
+                                {puntosDeCategoria.map((punto) => (
+                                    <div
+                                        key={punto.id}
+                                        className='flex flex-col justify-between bg-white shadow-md p-4 rounded-lg h-full'
+                                    >
+                                        <div>
+                                            <h3 className='font-semibold text-gray-800 text-lg'>{punto.nombre}</h3>
+                                            <p className='text-gray-600 text-sm'>{punto.latitud} {punto.longitud}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleOpenModal(punto)}
+                                            className='self-end bg-blue-500 hover:bg-blue-600 mt-4 px-4 py-2 rounded-lg text-white'
+                                        >
+                                            Ver Detalle
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
-                        );
-                    })
-                )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* 🔹 Eventos */}
             <span className='mt-6 font-semibold text-4xl'>Eventos</span>
 
-            <div className='flex flex-wrap gap-6 mt-4'>
-                {events.length === 0 ? (
-                    <p className="text-gray-500">No hay eventos disponibles</p>
-                ) : (
-                    events.map((evento) => (
-                        <div key={evento.id} className='bg-primary-blue p-6 rounded-lg'>
-                            <h2 className='font-semibold text-white text-3xl'>{evento.nombre}</h2>
-                            <div className='flex flex-col gap-3 mt-3 text-white text-xl'>
-                                <p>{evento.descripcion}</p>
-                                <p>
-                                    Del {new Date(evento.fechaInicio).toLocaleDateString()} 
-                                    al {new Date(evento.fechaFin).toLocaleDateString()}
-                                </p>
-                                <button
-                                    className="bg-white px-3 py-1 rounded-md text-primary-blue text-sm"
-                                    onClick={() => handleOpenModal(evento)}
-                                >
-                                    Ver detalle
-                                </button>
+            {/* Mostrar Eventos */}
+            <div className='gap-6 grid grid-cols-1 md:grid-cols-2'>
+                {categorias
+                    .map((categoria) => {
+                        const eventosDeCategoria = events.filter(evento => evento.categoriaId === categoria.id);
+                        return { ...categoria, eventos: eventosDeCategoria };
+                    })
+                    .filter(categoria => categoria.eventos.length > 0) // Filtramos solo las categorías que tienen eventos
+                    .sort((a, b) => b.eventos.length - a.eventos.length) // Ordenamos de mayor a menor cantidad de eventos
+                    .map((categoria) => (
+                        <div key={categoria.id} className='bg-primary-blue p-6 rounded-lg w-full'>
+                            <h2 className='mb-4 font-semibold text-white text-2xl'>{categoria.descripcion}</h2>
+
+                            {/* Contenedor de eventos con hasta tres por fila */}
+                            <div className='gap-4 grid grid-cols-1 md:grid-cols-3'>
+                                {categoria.eventos.map((evento) => (
+                                    <div
+                                        key={evento.id}
+                                        className='flex flex-col justify-between bg-white shadow-md p-4 rounded-lg h-full'
+                                    >
+                                        <div>
+                                            <h3 className='font-semibold text-gray-800 text-lg'>{evento.nombre}</h3>
+                                            <p className='text-gray-600 text-sm'>{evento.latitud} {evento.longitud}</p>
+                                            <p className='mt-2 text-gray-600 text-sm'>
+                                                Del {new Date(evento.fechaInicio).toLocaleDateString()} al {new Date(evento.fechaFin).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleOpenModal(evento)}
+                                            className='self-end bg-blue-500 hover:bg-blue-600 mt-4 px-4 py-2 rounded-lg text-white'
+                                        >
+                                            Ver Detalle
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    ))
-                )}
+                    ))}
             </div>
 
-            {/* 🔹 Modal de detalles */}
-            {openModal && selectedItem && (
-                <ModalCustom
-                    radius={10}
-                    introText="Detalles"
+            {openModal && (
+                <ModalCustom radius={10}
+                    introText={selectedPunto.fechaInicio ? "Detalles del Evento" : "Detalles del Punto Turístico"}
                     modalState={openModal}
                     handleModalClose={() => setOpenModal(false)}
-                >
-                    <div className="p-4 text-center">
-                        <h2 className="font-semibold text-xl">{selectedItem.nombre}</h2>
-                        <p><strong>Descripción:</strong> {selectedItem.descripcion}</p>
-                        {selectedItem.latitud && selectedItem.longitud && (
-                            <p><strong>Ubicación:</strong> {selectedItem.latitud}, {selectedItem.longitud}</p>
-                        )}
-                        {selectedItem.pathImagen && (
+                    style={{ position: "absolute", top: modalTop, left: "50%", transform: "translateX(-50%)" }}>
+                    <div className="p-4">
+                        <h2 className="font-semibold text-xl">{selectedPunto.nombre}</h2>
+                        <p><strong>Descripción:</strong> {selectedPunto.descripcion}</p>
+                        <p><strong>Ubicación:</strong> {selectedPunto.latitud}, {selectedPunto.longitud}</p>
+                        {selectedPunto.fechaInicio ? (
+                            <p><strong>Fechas: </strong>Del {new Date(selectedPunto.fechaInicio).toLocaleDateString()} al {new Date(selectedPunto.fechaFin).toLocaleDateString()}</p>
+                        ) : null}
+                        {selectedPunto.pathImagen ? (
                             <img
-                                src={`https://localhost:7070/${selectedItem.pathImagen}`}
-                                alt={selectedItem.nombre}
+                                src={`https://localhost:7070/${selectedPunto.pathImagen}`}
+                                alt=""
                                 className='m-auto pt-4 w-[200px] h-[200px] object-cover'
                             />
-                        )}
+                        ) : null}
                     </div>
                 </ModalCustom>
             )}
