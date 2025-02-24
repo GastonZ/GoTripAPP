@@ -48,6 +48,43 @@ const AdminPanel = () => {
     isAdmin: false
   });
 
+  const [errorMessages, setErrorMessages] = useState({});
+
+  const validateFields = () => {
+    const errors = {};
+
+    if (!newUser.userName || newUser.userName.length < 3) {
+      errors.userName = "El nombre de usuario debe tener al menos 3 caracteres.";
+    }
+
+    if (!newUser.email || !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(newUser.email)) {
+      errors.email = "Ingrese un correo válido.";
+    }
+
+    if (!newUser.telefono || !/^\d{7,}$/.test(newUser.telefono)) {
+      errors.telefono = "Ingrese un número de teléfono válido (mínimo 7 dígitos).";
+    }
+
+    if (!newUser.documento || !/^\d{7,10}$/.test(newUser.documento)) {
+      errors.documento = "El documento debe contener entre 7 y 10 números.";
+    }
+
+    if (!newUser.fechaNacimiento) {
+      errors.fechaNacimiento = "Ingrese una fecha de nacimiento.";
+    } else {
+      const fecha = new Date(newUser.fechaNacimiento);
+      const hoy = new Date();
+      if (fecha > hoy) {
+        errors.fechaNacimiento = "La fecha de nacimiento no puede ser futura.";
+      } else if (newUser.fechaNacimiento.length !== 10) {
+        errors.fechaNacimiento = "Ingrese una fecha válida.";
+      }
+    }
+
+    setErrorMessages(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   console.log(users)
 
   console.log(selectedUser);
@@ -104,6 +141,8 @@ const AdminPanel = () => {
   };
 
   const handleCreateUser = async () => {
+    if (!validateFields()) return;
+
     try {
       await createUsuario(newUser);
       fetchUsuarios();
@@ -636,101 +675,110 @@ const AdminPanel = () => {
               </ModalCustom>
             )}
 
-            {openCreateModal && (
-              <ModalCustom
-                introText="Crear Nuevo Usuario"
-                radius={10}
-                modalState={openCreateModal}
-                handleModalClose={() => setOpenCreateModal(false)}
-              >
-                <div className="p-4">
-                  <label className="block font-bold">Nombre de usuario:</label>
-                  <input
-                    type="text"
-                    className="p-2 border rounded-md w-full"
-                    value={newUser.userName}
-                    onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
-                    required
-                  />
+      {openCreateModal && (
+        <ModalCustom
+          introText="Crear Nuevo Usuario"
+          radius={10}
+          modalState={openCreateModal}
+          handleModalClose={() => setOpenCreateModal(false)}
+        >
+          <div className="p-4">
+            {/* Nombre de Usuario */}
+            <label className="block font-bold">Nombre de usuario:</label>
+            <input
+              type="text"
+              className="p-2 border rounded-md w-full"
+              value={newUser.userName}
+              onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
+              required
+            />
+            {errorMessages.userName && <p className="text-red-950">{errorMessages.userName}</p>}
 
-                  <label className="block mt-2 font-bold">Contraseña:</label>
-                  <input
-                    type="password"
-                    className="p-2 border rounded-md w-full"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    required
-                  />
+            {/* Contraseña */}
+            <label className="block mt-2 font-bold">Contraseña:</label>
+            <input
+              type="password"
+              className="p-2 border rounded-md w-full"
+              value={newUser.password}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              required
+            />
+            {errorMessages.password && <p className="text-red-950">{errorMessages.password}</p>}
 
-                  <label className="block mt-2 font-bold">Correo Electrónico:</label>
-                  <input
-                    type="email"
-                    className="p-2 border rounded-md w-full"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    required
-                  />
+            {/* Correo Electrónico */}
+            <label className="block mt-2 font-bold">Correo Electrónico:</label>
+            <input
+              type="email"
+              className="p-2 border rounded-md w-full"
+              value={newUser.email}
+              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              required
+            />
+            {errorMessages.email && <p className="text-red-950">{errorMessages.email}</p>}
 
-                  <label className="block mt-2 font-bold">Teléfono:</label>
-                  <input
-                    type="text"
-                    className="p-2 border rounded-md w-full"
-                    value={newUser.telefono}
-                    onChange={(e) => setNewUser({ ...newUser, telefono: e.target.value })}
-                    required
-                  />
+            {/* Teléfono */}
+            <label className="block mt-2 font-bold">Teléfono:</label>
+            <input
+              type="text"
+              className="p-2 border rounded-md w-full"
+              value={newUser.telefono}
+              onChange={(e) => setNewUser({ ...newUser, telefono: e.target.value })}
+              required
+            />
+            {errorMessages.telefono && <p className="text-red-950">{errorMessages.telefono}</p>}
 
-                  <label className="block mt-2 font-bold">Documento:</label>
-                  <input
-                    type="text"
-                    className="p-2 border rounded-md w-full"
-                    value={newUser.documento}
-                    onChange={(e) => setNewUser({ ...newUser, documento: e.target.value })}
-                  />
+            {/* Documento */}
+            <label className="block mt-2 font-bold">Documento:</label>
+            <input
+              type="text"
+              className="p-2 border rounded-md w-full"
+              value={newUser.documento}
+              onChange={(e) => setNewUser({ ...newUser, documento: e.target.value })}
+            />
+            {errorMessages.documento && <p className="text-red-950">{errorMessages.documento}</p>}
 
-                  <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
-                  <input
-                    type="date"
-                    className="p-2 border rounded-md w-full"
-                    value={newUser.fechaNacimiento}
-                    onChange={(e) => setNewUser({ ...newUser, fechaNacimiento: e.target.value })}
-                    required
-                  />
+            {/* Fecha de Nacimiento */}
+            <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
+            <input
+              type="date"
+              className="p-2 border rounded-md w-full"
+              value={newUser.fechaNacimiento}
+              onChange={(e) => setNewUser({ ...newUser, fechaNacimiento: e.target.value })}
+              required
+            />
+            {errorMessages.fechaNacimiento && <p className="text-red-950">{errorMessages.fechaNacimiento}</p>}
 
-                  {/* Estado (Siempre 1) */}
-                  <input type="hidden" value={1} />
+            {/* Checkboxes */}
+            <div className="flex items-center gap-2 mt-4">
+              <label className="font-bold">¿Es No Vidente?</label>
+              <input
+                type="checkbox"
+                checked={newUser.isNoVidente}
+                onChange={(e) => setNewUser({ ...newUser, isNoVidente: e.target.checked })}
+              />
+            </div>
 
-                  {/* Checkboxes */}
-                  <div className="flex items-center gap-2 mt-4">
-                    <label className="font-bold">¿Es No Vidente?</label>
-                    <input
-                      type="checkbox"
-                      checked={newUser.isNoVidente}
-                      onChange={(e) => setNewUser({ ...newUser, isNoVidente: e.target.checked })}
-                    />
-                  </div>
+            <div className="flex items-center gap-2 mt-2">
+              <label className="font-bold">¿Es Administrador?</label>
+              <input
+                type="checkbox"
+                checked={newUser.isAdmin}
+                onChange={(e) => setNewUser({ ...newUser, isAdmin: e.target.checked })}
+              />
+            </div>
 
-                  <div className="flex items-center gap-2 mt-2">
-                    <label className="font-bold">¿Es Administrador?</label>
-                    <input
-                      type="checkbox"
-                      checked={newUser.isAdmin}
-                      onChange={(e) => setNewUser({ ...newUser, isAdmin: e.target.checked })}
-                    />
-                  </div>
-
-                  {/* Botones */}
-                  <div className="flex gap-4 mt-4">
-                    <button className="bg-blue-500 px-4 py-2 rounded-md text-white" onClick={handleCreateUser}>
-                      Crear
-                    </button>
-                    <button className="bg-gray-500 px-4 py-2 rounded-md text-white" onClick={() => setOpenCreateModal(false)}>
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              </ModalCustom>
-            )}
+            {/* Botones */}
+            <div className="flex gap-4 mt-4">
+              <button className="bg-blue-500 px-4 py-2 rounded-md text-white" onClick={handleCreateUser}>
+                Crear
+              </button>
+              <button className="bg-gray-500 px-4 py-2 rounded-md text-white" onClick={() => setOpenCreateModal(false)}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </ModalCustom>
+      )}
 
           </div>
         );
