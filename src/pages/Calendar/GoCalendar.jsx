@@ -5,9 +5,10 @@ import 'react-calendar/dist/Calendar.css';
 import ButtonOptions from '../../components/ButtonOptions';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/outline';
-import { getActiveCategorias, getAllPuntosTuristicos, getAllEventos, createPlanViaje } from '../../service/goTripService';
+import { getActiveCategorias, getAllPuntosTuristicos, getAllEventos, createPlanViaje, updatePlanViaje } from '../../service/goTripService';
 import ModalCustom from '../../components/ModalCustom';
 import { TrashIcon } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const GoCalendar = () => {
   const navigate = useNavigate();
@@ -15,6 +16,33 @@ const GoCalendar = () => {
   const [steps, setSteps] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
   const [description, setDescription] = useState("")
+
+  const location = useLocation()
+  const tripToEdit = location.state?.tripToEdit || null;
+
+  console.log(tripToEdit);
+  
+
+  useEffect(() => {
+    if (tripToEdit) {
+      setIsEditing(true);
+      setTripId(tripToEdit.id);
+      setValue([new Date(tripToEdit.fechaInicio), new Date(tripToEdit.fechaFin)]);
+      setDescription(tripToEdit.descripcion)
+      setSelectedItems(tripToEdit.lineaPlanViaje.map((item) =>
+        item.puntoTuristicoId ? `punto_${item.puntoTuristicoId}` : `evento_${item.eventoId}`
+      ));
+      setSelectedItemsDetails(tripToEdit.lineaPlanViaje.map((item) => ({
+        key: item.puntoTuristicoId ? `punto_${item.puntoTuristicoId}` : `evento_${item.eventoId}`,
+        nombre: item.puntoTuristico ? item.puntoTuristico.nombre : item.evento.nombre,
+        latitud: item.puntoTuristico ? item.puntoTuristico.latitud : item.evento.latitud,
+        longitud: item.puntoTuristico ? item.puntoTuristico.longitud : item.evento.longitud
+      })));
+    }
+  }, [tripToEdit]);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [tripId, setTripId] = useState(null);
 
   const [selectedItemsDetails, setSelectedItemsDetails] = useState([]);
 
@@ -144,7 +172,7 @@ const GoCalendar = () => {
       alert("Debes seleccionar al menos un punto turístico o un evento.");
       return;
     }
-
+  
     const nuevoPlanViaje = {
       usuarioId: goUserId,
       fechaInicio: value[0].toISOString(),
@@ -155,21 +183,27 @@ const GoCalendar = () => {
         return type === "punto"
           ? { puntoTuristicoId: parseInt(id) }
           : { eventoId: parseInt(id) };
-      })
+      }),
     };
-
+  
     try {
-      const response = await createPlanViaje(nuevoPlanViaje);
-
+      let response;
+      if (isEditing) {
+        response = await updatePlanViaje(tripId, nuevoPlanViaje);
+        alert("Plan de viaje actualizado con éxito.");
+      } else {
+        response = await createPlanViaje(nuevoPlanViaje);
+        alert("Plan de viaje creado con éxito.");
+      }
+  
       console.log(response);
-
-      alert("Plan de viaje creado con éxito.");
       navigate("/opciones");
     } catch (error) {
-      console.error("Error creando plan de viaje:", error);
-      alert("Error al crear el plan de viaje.");
+      console.error("Error guardando el plan de viaje:", error);
+      alert("Error al guardar el plan de viaje.");
     }
   };
+  
 
   const generateIframeUrl = async (mode = "driving") => {
     return new Promise((resolve, reject) => {
@@ -193,11 +227,6 @@ const GoCalendar = () => {
         }
         return null;
       }).filter(Boolean);
-
-      if (selectedCoordinates.length < 1) {
-        reject("No hay ubicaciones suficientes para generar el mapa.");
-        return;
-      }
 
       const waypoints = selectedCoordinates.length > 1 ? selectedCoordinates.slice(0, -1).join("|") : "";
       const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
@@ -245,7 +274,7 @@ const GoCalendar = () => {
                 <label className='text-lg'>
                   Descripción
                 </label>
-                  <input onChange={(e) => setDescription(e.target.value)} className='focus:bg-blue-300 px-4 rounded-sm outline-none w-[250px] h-10 transition-all' type="text" />
+                  <input value={description} onChange={(e) => setDescription(e.target.value)} className='focus:bg-blue-300 px-4 rounded-sm outline-none w-[250px] h-10 transition-all' type="text" />
                 <div className='flex flex-col gap-1'>
                   <p>Fecha de inicio</p>
                   <span className='bg-primary-lightBlue p-2 rounded-sm text-3xl'>
@@ -431,7 +460,7 @@ const GoCalendar = () => {
                 className='border-0 rounded-md w-full md:w-[500px] h-[500px]'
               ></iframe>
             ) : (
-              <p className="text-gray-500">Generando mapa... Asegúrate de haber seleccionado al menos dos ubicaciones.</p>
+              <p className="text-gray-500">Generando mapa...</p>
             )}
 
             <ButtonOptions onClick={handleConfirmTrip} text={'Guardar plan de viaje'} />

@@ -35,7 +35,6 @@ function App() {
         <Route path='/guia-turistica' element={<GuiaTuristica />} /> 
         <Route path='/admin' element={<AdminPanel />} />
         <Route path='/puntos-turisticos' element={<PointsAndEvents />} />
-        <Route path='/guia-turistica' element={<GuiaTuristica />} />
       </Routes>
     </>
   )

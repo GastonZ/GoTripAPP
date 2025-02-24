@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import MyTripsCard from "../../components/MyTripsCard";
 import { getAllPlanViaje, inactivatePlanViaje } from "../../service/goTripService";
 import { useGeolocated } from "react-geolocated";
+import { useNavigate } from "react-router-dom";
 
 const MyTrips = () => {
   const [myTrips, setMyTrips] = useState([]);
@@ -33,13 +34,13 @@ const MyTrips = () => {
     try {
       setLoading(true);
       setError(null);
-  
+
       const response = await getAllPlanViaje();
-  
+
       if (response && Array.isArray(response)) {
         const userTrips = response.filter((trip) => trip.usuarioId == goUserId && trip.state === 1);
         console.log("Planes de viaje activos:", userTrips);
-        
+
         setMyTrips(userTrips);
       } else {
         setMyTrips([]);
@@ -51,7 +52,7 @@ const MyTrips = () => {
       setLoading(false);
     }
   };
-  
+
 
   const handleDeleteTrip = async (tripId) => {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este plan de viaje?")) return;
@@ -63,6 +64,12 @@ const MyTrips = () => {
       console.error("Error eliminando el plan de viaje:", error);
       alert("No se pudo eliminar el plan de viaje.");
     }
+  };
+
+  const navigate = useNavigate();
+
+  const handleEditTrip = (trip) => {
+    navigate("/calendario", { state: { tripToEdit: trip } });
   };
 
   const generateIframeUrl = (trip, mode = "driving") => {
@@ -101,8 +108,8 @@ const MyTrips = () => {
   };
 
   console.log(myTrips[0]);
-  
-  
+
+
   return (
     <main className="flex flex-wrap justify-center items-center h-screen">
       {loading ? (
@@ -124,8 +131,8 @@ const MyTrips = () => {
                 linea.puntoTuristico
                   ? linea.puntoTuristico.nombre
                   : linea.evento
-                  ? linea.evento.nombre
-                  : "Lugar desconocido"
+                    ? linea.evento.nombre
+                    : "Lugar desconocido"
               )}
               initDate={trip.fechaInicio}
               endDate={trip.fechaFin}
@@ -153,9 +160,9 @@ const MyTrips = () => {
                 Ver mapa a pie
               </button>
 
-{/*               <button className="bg-yellow-500 p-2 rounded-lg w-max text-white">
+              <button onClick={() => handleEditTrip(trip)} className="bg-yellow-500 p-2 rounded-lg w-max text-white">
                 Editar plan de viaje
-              </button> */}
+              </button>
 
               <button
                 onClick={() => handleDeleteTrip(trip.id)}
