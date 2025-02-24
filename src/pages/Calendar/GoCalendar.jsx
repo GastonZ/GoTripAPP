@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useGeolocated } from 'react-geolocated';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import ButtonOptions from '../../components/ButtonOptions';
@@ -25,6 +26,11 @@ const GoCalendar = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [events, setEvents] = useState([]);
+
+  const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
+    positionOptions: { enableHighAccuracy: true },
+    userDecisionTimeout: 5000,
+  });
 
   const goUserId = localStorage.getItem("userGoId");
 
@@ -164,53 +170,52 @@ const GoCalendar = () => {
     }
   };
 
-  const generateIframeUrl = async () => {
-    if (selectedItems.length < 1) return;
-
+  const generateIframeUrl = async (mode = "driving") => {
     return new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userCoords = `${position.coords.latitude},${position.coords.longitude}`;
-          const baseUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k";
-
-          const selectedCoordinates = selectedItems.map((key) => {
-            const [type, id] = key.split("_");
-            if (type === "punto") {
-              const punto = puntosTuristicos.find((pt) => pt.id === parseInt(id));
-              return punto ? `${punto.latitud},${punto.longitud}` : null;
-            } else if (type === "evento") {
-              const evento = events.find((ev) => ev.id === parseInt(id));
-              return evento ? `${evento.latitud},${evento.longitud}` : null;
-            }
-            return null;
-          }).filter(Boolean);
-
-          if (selectedCoordinates.length < 1) {
-            reject("No hay coordenadas suficientes para generar el mapa.");
-            return;
-          }
-
-          const waypoints = selectedCoordinates.slice(0, -1).join("|");
-          const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
-
-          const url = `${baseUrl}&origin=${userCoords}&destination=${finalDestination}&waypoints=${waypoints}&mode=driving`;
-          resolve(url);
-        },
-        (error) => {
-          console.error("Error obteniendo ubicación:", error);
-          reject("No se pudo obtener la ubicación del usuario.");
+      if (!isGeolocationAvailable || !isGeolocationEnabled || !coords) {
+        console.error("La geolocalización no está disponible o fue denegada.");
+        reject("No se pudo obtener la ubicación del usuario.");
+        return;
+      }
+  
+      const userCoords = `${coords.latitude},${coords.longitude}`;
+      const baseUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k";
+  
+      const selectedCoordinates = selectedItems.map((key) => {
+        const [type, id] = key.split("_");
+        if (type === "punto") {
+          const punto = puntosTuristicos.find((pt) => pt.id === parseInt(id));
+          return punto ? `${punto.latitud},${punto.longitud}` : null;
+        } else if (type === "evento") {
+          const evento = events.find((ev) => ev.id === parseInt(id));
+          return evento ? `${evento.latitud},${evento.longitud}` : null;
         }
-      );
+        return null;
+      }).filter(Boolean);
+  
+      if (selectedCoordinates.length < 1) {
+        reject("No hay ubicaciones suficientes para generar el mapa.");
+        return;
+      }
+  
+      const waypoints = selectedCoordinates.length > 1 ? selectedCoordinates.slice(0, -1).join("|") : "";
+      const finalDestination = selectedCoordinates[selectedCoordinates.length - 1];
+  
+      const url = `${baseUrl}&origin=${userCoords}&destination=${finalDestination}${waypoints ? `&waypoints=${waypoints}` : ""}&mode=${mode}`;
+  
+      console.log("URL del mapa generada:", url);
+      resolve(url);
     });
   };
-
+  
+  // Cuando pasas al paso 3, generamos el mapa
   useEffect(() => {
-    if (steps === 3 && selectedItems.length > 0) {
+    if (steps === 3 && selectedItemsDetails.length > 0) {
       generateIframeUrl()
         .then((url) => setIframeUrl(url))
         .catch((err) => console.error(err));
     }
-  }, [steps, selectedItems]);
+  }, [steps, selectedItemsDetails]);
 
   const handleOpenModal = (punto) => {
     setSelectedPunto(punto);
