@@ -33,7 +33,8 @@ const GoCalendar = () => {
   const fetchCategorias = async () => {
     try {
       const data = await getActiveCategorias();
-      setCategorias(data || []);
+      const categoriasActivas = data.filter(cat => cat.state === 1);
+      setCategorias(categoriasActivas || []);
     } catch (error) {
       console.error("Error obteniendo categorías:", error);
     }
@@ -42,7 +43,8 @@ const GoCalendar = () => {
   const fetchEventos = async () => {
     try {
       const data = await getAllEventos();
-      setEvents(data || []);
+      const eventosActivos = data.filter(evento => evento.state === 1);
+      setEvents(eventosActivos || []);
     } catch (error) {
       console.error("Error obteniendo eventos:", error);
     }
@@ -57,8 +59,8 @@ const GoCalendar = () => {
   const fetchPuntosTuristicos = async () => {
     try {
       const data = await getAllPuntosTuristicos();
-      const filtrados = data.filter(pt => pt.categoriaId === selectedCategory);
-      setPuntosTuristicos(filtrados);
+      const puntosActivos = data.filter(pt => pt.state === 1 && pt.categoriaId === selectedCategory);
+      setPuntosTuristicos(puntosActivos);
     } catch (error) {
       console.error("Error obteniendo puntos turísticos:", error);
     }
@@ -153,7 +155,7 @@ const GoCalendar = () => {
       const response = await createPlanViaje(nuevoPlanViaje);
 
       console.log(response);
-            
+
       alert("Plan de viaje creado con éxito.");
       navigate("/opciones");
     } catch (error) {
@@ -277,7 +279,11 @@ const GoCalendar = () => {
               <>
                 {/* Puntos turísticos */}
                 <div className="flex flex-col items-center mt-6 mb-4">
-                  <p>Puntos turísticos en esta categoría:</p>
+                  {puntosTuristicos.filter(punto => punto.categoriaId === selectedCategory).length > 0 ?
+                    <p>Puntos turísticos en esta categoría:</p>
+                    :
+                    <></>
+                  }
                   <div className="flex flex-wrap justify-around gap-4">
                     {puntosTuristicos.map((punto) => (
                       <div key={punto.id} className="flex justify-between items-center bg-white p-4 rounded-md w-[350px]">

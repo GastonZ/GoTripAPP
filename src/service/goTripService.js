@@ -6,8 +6,10 @@ const handleRequest = async (request) => {
     const response = await request;
     return response.data;
   } catch (error) {
-    console.error("API Error:", error);
-    return null;
+    if (error.response) {
+      return error.response;
+    }
+    throw error;
   }
 };
 

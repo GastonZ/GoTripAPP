@@ -85,10 +85,6 @@ const AdminPanel = () => {
     return Object.keys(errors).length === 0;
   };
 
-  console.log(users)
-
-  console.log(selectedUser);
-
   useEffect(() => {
     fetchUsuarios();
   }, []);
@@ -140,13 +136,26 @@ const AdminPanel = () => {
     }
   };
 
+  const [errorMessage, setErrorMessage] = useState("");
+  
   const handleCreateUser = async () => {
     if (!validateFields()) return;
-
+  
     try {
-      await createUsuario(newUser);
+      const response = await createUsuario(newUser);
+      console.log('resposne de create usuario', response);
+      
+      if (response?.status === 400 && response?.data) {
+        setErrorMessage(response.data);
+        return;
+      }
+  
+      console.log("Usuario creado exitosamente:", response);
+  
       fetchUsuarios();
       setOpenCreateModal(false);
+      setErrorMessage("");
+  
       setNewUser({
         userName: "",
         password: "",
@@ -160,15 +169,22 @@ const AdminPanel = () => {
       });
     } catch (error) {
       console.error("Error creando usuario:", error);
+  
+      if (error.response?.data) {
+        setErrorMessage(error.response.data);
+        alert(error.response?.data)
+      } else {
+        setErrorMessage("Hubo un error al crear el usuario. Inténtelo de nuevo.");
+      }
     }
   };
+  
 
   const [puntosTuristicos, setPuntosTuristicos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [openModalTourist, setOpenModalToursit] = useState(false);
   const [selectedPunto, setSelectedPunto] = useState(null);
 
-  // Estado para el formulario de nuevo punto turístico
   const [newPlaceName, setNewPlaceName] = useState("");
   const [newPlaceDescription, setNewPlaceDescription] = useState("");
   const [newPlaceLatitude, setNewPlaceLatitude] = useState("");
@@ -305,7 +321,7 @@ const AdminPanel = () => {
 
     try {
       await uploadEventImages(selectedEventId, selectedEventFile);
-      fetchPuntosTuristicos()
+      fetchEventos()
       alert("Imagen subida con éxito.");
       setOpenModalImage(false);
       setSelectedFile(null);
@@ -684,6 +700,7 @@ const AdminPanel = () => {
         >
           <div className="p-4">
             {/* Nombre de Usuario */}
+            {errorMessage && <p className="mt-2 font-semibold text-red-900">{errorMessage}</p>}
             <label className="block font-bold">Nombre de usuario:</label>
             <input
               type="text"
