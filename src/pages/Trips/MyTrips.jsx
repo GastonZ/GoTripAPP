@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from "react";
 import MyTripsCard from "../../components/MyTripsCard";
-import { getAllPlanViaje } from "../../service/goTripService";
+import { getAllPlanViaje, inactivatePlanViaje } from "../../service/goTripService";
+import { useGeolocated } from "react-geolocated";
 
 const MyTrips = () => {
   const [myTrips, setMyTrips] = useState([]);
   const [selectedTripIndex, setSelectedTripIndex] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mapMode, setMapMode] = useState("driving");
 
   const goUserId = localStorage.getItem("userGoId");
+
+  const [iframeUrl, setIframeUrl] = useState("");
+
+  const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
+    positionOptions: { enableHighAccuracy: true },
+    userDecisionTimeout: 5000,
+  });
+
+  useEffect(() => {
+    if (coords) {
+      console.log("Ubicación obtenida:", coords.latitude, coords.longitude);
+    }
+  }, [coords]);
 
   useEffect(() => {
     fetchTrips();
@@ -18,12 +33,13 @@ const MyTrips = () => {
     try {
       setLoading(true);
       setError(null);
-
+  
       const response = await getAllPlanViaje();
-
+  
       if (response && Array.isArray(response)) {
-        // Filtrar los planes de viaje del usuario autenticado
-        const userTrips = response.filter((trip) => trip.usuarioId == goUserId);
+        const userTrips = response.filter((trip) => trip.usuarioId == goUserId && trip.state === 1);
+        console.log("Planes de viaje activos:", userTrips);
+        
         setMyTrips(userTrips);
       } else {
         setMyTrips([]);
@@ -35,12 +51,30 @@ const MyTrips = () => {
       setLoading(false);
     }
   };
+  
 
-  const generateIframeUrl = (trip) => {
+  const handleDeleteTrip = async (tripId) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este plan de viaje?")) return;
+
+    try {
+      await inactivatePlanViaje(tripId);
+      fetchTrips();
+    } catch (error) {
+      console.error("Error eliminando el plan de viaje:", error);
+      alert("No se pudo eliminar el plan de viaje.");
+    }
+  };
+
+  const generateIframeUrl = (trip, mode = "driving") => {
     const baseUrl =
       "https://www.google.com/maps/embed/v1/directions?key=AIzaSyAvBg2_LvfISOBrPQI5gIVNkF_65ypu-8k";
-    const origin = "current+location";
 
+    if (!isGeolocationAvailable || !isGeolocationEnabled || !coords) {
+      console.error("La geolocalización no está disponible o fue denegada.");
+      return "";
+    }
+
+    const origin = `${coords.latitude},${coords.longitude}`;
     const coordinates = trip.lineaPlanViaje
       .map((linea) => {
         if (linea.puntoTuristico) {
@@ -53,14 +87,19 @@ const MyTrips = () => {
       })
       .filter(Boolean);
 
-    if (coordinates.length < 1) return "";
+    console.log("Coordenadas obtenidas del viaje:", coordinates);
 
-    const waypoints = coordinates.slice(0, -1).join("|");
+    if (coordinates.length === 0) {
+      console.error("No hay ubicaciones válidas para generar el mapa.");
+      return "";
+    }
+
     const finalDestination = coordinates[coordinates.length - 1];
+    const waypoints = coordinates.length > 1 ? coordinates.slice(0, -1).join("|") : "";
 
-    return `${baseUrl}&origin=${origin}&destination=${finalDestination}&waypoints=${waypoints}&mode=driving`;
+    return `${baseUrl}&origin=${origin}&destination=${finalDestination}${waypoints ? `&waypoints=${waypoints}` : ""}&mode=${mode}`;
   };
-
+  
   return (
     <main className="flex flex-wrap justify-center items-center h-screen">
       {loading ? (
@@ -69,13 +108,11 @@ const MyTrips = () => {
         <p className="font-semibold text-red-500 text-center">{error}</p>
       ) : myTrips.length === 0 ? (
         <div className="text-center">
-          <p className="font-bold text-black text-3xl">
-            Aún no has creado ningún viaje
-          </p>
+          <p className="font-bold text-black text-3xl">Aún no has creado ningún viaje</p>
         </div>
       ) : (
         myTrips.map((trip, index) => (
-          <div key={trip.id} className="flex flex-col mb-6">
+          <div key={trip.id} className="flex flex-col bg-white shadow-lg mb-6 p-4 rounded-lg w-full max-w-md">
             <MyTripsCard
               travelPoints={trip.lineaPlanViaje.map((linea) =>
                 linea.puntoTuristico
@@ -87,20 +124,46 @@ const MyTrips = () => {
               initDate={trip.fechaInicio}
               endDate={trip.fechaFin}
             />
-            <button
-              onClick={() =>
-                setSelectedTripIndex(selectedTripIndex === index ? null : index)
-              }
-              className="bg-primary-darkBlue mt-4 p-2 rounded-lg w-max text-white"
-            >
-              {selectedTripIndex === index ? "Ocultar mapa" : "Ver en mapa"}
-            </button>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button
+                onClick={() => setSelectedTripIndex(selectedTripIndex === index ? null : index)}
+                className="bg-primary-darkBlue p-2 rounded-lg w-max text-white"
+              >
+                {selectedTripIndex === index ? "Ocultar mapa" : "Ver en mapa"}
+              </button>
+
+              <button
+                onClick={() => setMapMode("driving")}
+                className={`p-2 rounded-lg w-max ${mapMode === "driving" ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}`}
+              >
+                Ver mapa en auto
+              </button>
+
+              <button
+                onClick={() => setMapMode("walking")}
+                className={`p-2 rounded-lg w-max ${mapMode === "walking" ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}`}
+              >
+                Ver mapa a pie
+              </button>
+
+              <button className="bg-yellow-500 p-2 rounded-lg w-max text-white">
+                Editar plan de viaje
+              </button>
+
+              <button
+                onClick={() => handleDeleteTrip(trip.id)}
+                className="bg-red-500 p-2 rounded-lg w-max text-white"
+              >
+                Borrar plan de viaje
+              </button>
+            </div>
 
             {selectedTripIndex === index && (
               <iframe
-                src={generateIframeUrl(trip)}
-                className="w-full h-[500px]"
-                style={{ border: 0, marginTop: "20px" }}
+                src={generateIframeUrl(trip, mapMode)}
+                className="mt-4 w-full h-[500px]"
+                style={{ border: 0 }}
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
