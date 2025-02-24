@@ -34,15 +34,15 @@ const AdminPanel = () => {
 
   const navigate = useNavigate()
 
-/*   useEffect(() => {
-      const isAdmin = localStorage.getItem('isAdmin') === true;
-
-      if (isAdmin === true) {
-        console.log('Todo bien es admin')
-      } else {
-        navigate('/opciones')
-      }
-  }, []) */
+  /*   useEffect(() => {
+        const isAdmin = localStorage.getItem('isAdmin') === true;
+  
+        if (isAdmin === true) {
+          console.log('Todo bien es admin')
+        } else {
+          navigate('/opciones')
+        }
+    }, []) */
 
   const [selectedItem, setSelectedItem] = useState('userManagement');
 
@@ -151,25 +151,25 @@ const AdminPanel = () => {
   };
 
   const [errorMessage, setErrorMessage] = useState("");
-  
+
   const handleCreateUser = async () => {
     if (!validateFields()) return;
-  
+
     try {
       const response = await createUsuario(newUser);
       console.log('resposne de create usuario', response);
-      
+
       if (response?.status === 400 && response?.data) {
         setErrorMessage(response.data);
         return;
       }
-  
+
       console.log("Usuario creado exitosamente:", response);
-  
+
       fetchUsuarios();
       setOpenCreateModal(false);
       setErrorMessage("");
-  
+
       setNewUser({
         userName: "",
         password: "",
@@ -183,7 +183,7 @@ const AdminPanel = () => {
       });
     } catch (error) {
       console.error("Error creando usuario:", error);
-  
+
       if (error.response?.data) {
         setErrorMessage(error.response.data);
         alert(error.response?.data)
@@ -192,7 +192,7 @@ const AdminPanel = () => {
       }
     }
   };
-  
+
 
   const [puntosTuristicos, setPuntosTuristicos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -367,19 +367,34 @@ const AdminPanel = () => {
 
   const handleAddCategoria = async () => {
     if (!newCategory.trim()) {
-      alert("El nombre de la categoría no puede estar vacío");
+      setErrorMessage("El nombre de la categoría no puede estar vacío.");
       return;
     }
 
     try {
-      await createCategoria({ descripcion: newCategory });
+      const response = await createCategoria({ descripcion: newCategory });
+
+      if (response?.status === 400 && response?.data) {
+        setErrorMessage(response.data);
+        return;
+      }
+
       fetchCategorias();
       setNewCategory("");
       setOpenModalCategory(false);
+      setErrorMessage("");
+
     } catch (error) {
       console.error("Error creando categoría:", error);
+
+      if (error.response?.data) {
+        setErrorMessage(error.response.data);
+      } else {
+        setErrorMessage("Hubo un error al crear la categoría. Inténtelo de nuevo.");
+      }
     }
   };
+
 
   const handleEditCategoria = (categoria) => {
     setSelectedCategoria(categoria);
@@ -705,111 +720,111 @@ const AdminPanel = () => {
               </ModalCustom>
             )}
 
-      {openCreateModal && (
-        <ModalCustom
-          introText="Crear Nuevo Usuario"
-          radius={10}
-          modalState={openCreateModal}
-          handleModalClose={() => setOpenCreateModal(false)}
-        >
-          <div className="p-4">
-            {/* Nombre de Usuario */}
-            {errorMessage && <p className="mt-2 font-semibold text-red-900">{errorMessage}</p>}
-            <label className="block font-bold">Nombre de usuario:</label>
-            <input
-              type="text"
-              className="p-2 border rounded-md w-full"
-              value={newUser.userName}
-              onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
-              required
-            />
-            {errorMessages.userName && <p className="text-red-950">{errorMessages.userName}</p>}
+            {openCreateModal && (
+              <ModalCustom
+                introText="Crear Nuevo Usuario"
+                radius={10}
+                modalState={openCreateModal}
+                handleModalClose={() => setOpenCreateModal(false)}
+              >
+                <div className="p-4">
+                  {/* Nombre de Usuario */}
+                  {errorMessage && <p className="mt-2 font-semibold text-red-900">{errorMessage}</p>}
+                  <label className="block font-bold">Nombre de usuario:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.userName}
+                    onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
+                    required
+                  />
+                  {errorMessages.userName && <p className="text-red-950">{errorMessages.userName}</p>}
 
-            {/* Contraseña */}
-            <label className="block mt-2 font-bold">Contraseña:</label>
-            <input
-              type="password"
-              className="p-2 border rounded-md w-full"
-              value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-              required
-            />
-            {errorMessages.password && <p className="text-red-950">{errorMessages.password}</p>}
+                  {/* Contraseña */}
+                  <label className="block mt-2 font-bold">Contraseña:</label>
+                  <input
+                    type="password"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    required
+                  />
+                  {errorMessages.password && <p className="text-red-950">{errorMessages.password}</p>}
 
-            {/* Correo Electrónico */}
-            <label className="block mt-2 font-bold">Correo Electrónico:</label>
-            <input
-              type="email"
-              className="p-2 border rounded-md w-full"
-              value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              required
-            />
-            {errorMessages.email && <p className="text-red-950">{errorMessages.email}</p>}
+                  {/* Correo Electrónico */}
+                  <label className="block mt-2 font-bold">Correo Electrónico:</label>
+                  <input
+                    type="email"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    required
+                  />
+                  {errorMessages.email && <p className="text-red-950">{errorMessages.email}</p>}
 
-            {/* Teléfono */}
-            <label className="block mt-2 font-bold">Teléfono:</label>
-            <input
-              type="text"
-              className="p-2 border rounded-md w-full"
-              value={newUser.telefono}
-              onChange={(e) => setNewUser({ ...newUser, telefono: e.target.value })}
-              required
-            />
-            {errorMessages.telefono && <p className="text-red-950">{errorMessages.telefono}</p>}
+                  {/* Teléfono */}
+                  <label className="block mt-2 font-bold">Teléfono:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.telefono}
+                    onChange={(e) => setNewUser({ ...newUser, telefono: e.target.value })}
+                    required
+                  />
+                  {errorMessages.telefono && <p className="text-red-950">{errorMessages.telefono}</p>}
 
-            {/* Documento */}
-            <label className="block mt-2 font-bold">Documento:</label>
-            <input
-              type="text"
-              className="p-2 border rounded-md w-full"
-              value={newUser.documento}
-              onChange={(e) => setNewUser({ ...newUser, documento: e.target.value })}
-            />
-            {errorMessages.documento && <p className="text-red-950">{errorMessages.documento}</p>}
+                  {/* Documento */}
+                  <label className="block mt-2 font-bold">Documento:</label>
+                  <input
+                    type="text"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.documento}
+                    onChange={(e) => setNewUser({ ...newUser, documento: e.target.value })}
+                  />
+                  {errorMessages.documento && <p className="text-red-950">{errorMessages.documento}</p>}
 
-            {/* Fecha de Nacimiento */}
-            <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
-            <input
-              type="date"
-              className="p-2 border rounded-md w-full"
-              value={newUser.fechaNacimiento}
-              onChange={(e) => setNewUser({ ...newUser, fechaNacimiento: e.target.value })}
-              required
-            />
-            {errorMessages.fechaNacimiento && <p className="text-red-950">{errorMessages.fechaNacimiento}</p>}
+                  {/* Fecha de Nacimiento */}
+                  <label className="block mt-2 font-bold">Fecha de Nacimiento:</label>
+                  <input
+                    type="date"
+                    className="p-2 border rounded-md w-full"
+                    value={newUser.fechaNacimiento}
+                    onChange={(e) => setNewUser({ ...newUser, fechaNacimiento: e.target.value })}
+                    required
+                  />
+                  {errorMessages.fechaNacimiento && <p className="text-red-950">{errorMessages.fechaNacimiento}</p>}
 
-            {/* Checkboxes */}
-            <div className="flex items-center gap-2 mt-4">
-              <label className="font-bold">¿Es No Vidente?</label>
-              <input
-                type="checkbox"
-                checked={newUser.isNoVidente}
-                onChange={(e) => setNewUser({ ...newUser, isNoVidente: e.target.checked })}
-              />
-            </div>
+                  {/* Checkboxes */}
+                  <div className="flex items-center gap-2 mt-4">
+                    <label className="font-bold">¿Es No Vidente?</label>
+                    <input
+                      type="checkbox"
+                      checked={newUser.isNoVidente}
+                      onChange={(e) => setNewUser({ ...newUser, isNoVidente: e.target.checked })}
+                    />
+                  </div>
 
-            <div className="flex items-center gap-2 mt-2">
-              <label className="font-bold">¿Es Administrador?</label>
-              <input
-                type="checkbox"
-                checked={newUser.isAdmin}
-                onChange={(e) => setNewUser({ ...newUser, isAdmin: e.target.checked })}
-              />
-            </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <label className="font-bold">¿Es Administrador?</label>
+                    <input
+                      type="checkbox"
+                      checked={newUser.isAdmin}
+                      onChange={(e) => setNewUser({ ...newUser, isAdmin: e.target.checked })}
+                    />
+                  </div>
 
-            {/* Botones */}
-            <div className="flex gap-4 mt-4">
-              <button className="bg-blue-500 px-4 py-2 rounded-md text-white" onClick={handleCreateUser}>
-                Crear
-              </button>
-              <button className="bg-gray-500 px-4 py-2 rounded-md text-white" onClick={() => setOpenCreateModal(false)}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </ModalCustom>
-      )}
+                  {/* Botones */}
+                  <div className="flex gap-4 mt-4">
+                    <button className="bg-blue-500 px-4 py-2 rounded-md text-white" onClick={handleCreateUser}>
+                      Crear
+                    </button>
+                    <button className="bg-gray-500 px-4 py-2 rounded-md text-white" onClick={() => setOpenCreateModal(false)}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </ModalCustom>
+            )}
 
           </div>
         );
@@ -1016,6 +1031,10 @@ const AdminPanel = () => {
                 modalState={openModalCategory}
                 handleModalClose={() => setOpenModalCategory(false)}
               >
+                {errorMessage && (
+                  <p className="mt-2 text-red-900 text-sm">{errorMessage}</p>
+                )}
+
                 <div className="flex flex-col gap-3 p-4">
                   {/* Nombre de la categoría */}
                   <label className="font-bold">Nombre de la Categoría:</label>
