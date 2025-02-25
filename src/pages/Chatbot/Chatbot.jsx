@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
-import './Chatbot.css'; // Archivo de estilos separado
+import './Chatbot.css';
 
 const Chatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
@@ -14,10 +14,38 @@ const Chatbot = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conversation]);
 
+  const formatResponse = (text) => {
+    // Aplicar negritas donde sea necesario
+    text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    
+    // Reemplazar saltos de línea con etiquetas HTML para mantener formato
+    text = text.replace(/\n/g, '<br/>');
+    
+    // Añadir emojis según palabras clave
+    const emojiMap = {
+      'histórico': '🏛️',
+      'parque': '🌳',
+      'museo': '🖼️',
+      'comida': '🍽️',
+      'playa': '🏖️',
+      'montaña': '⛰️',
+      'catedral': '⛪',
+      'arte': '🎨',
+      'gastronomía': '🍲',
+      'evento': '🎭'
+    };
+    Object.keys(emojiMap).forEach((key) => {
+      const regex = new RegExp(`\b${key}\b`, 'gi');
+      text = text.replace(regex, `${emojiMap[key]} ${key}`);
+    });
+    
+    return text;
+  };
+
   const sendMessage = async (userMessage) => {
     setLoading(true);
     
-    const siteSpecificPrompt = "Eres un asistente virtual diseñado para responder preguntas sobre este sitio web y actuar como guía turístico de la ciudad. Además de brindar información sobre la funcionalidad del sitio, también puedes sugerir lugares turísticos, actividades recomendadas y datos históricos o culturales de la ciudad. La principal funcionalidad del sitio es crear un plan de viaje. Indica a los usuarios que deben ir a la sección Opciones, luego seleccionar Realizar plan de viaje y seguir los pasos que se les indique.";
+    const siteSpecificPrompt = "Eres un asistente virtual diseñado para responder preguntas sobre este sitio web y actuar como guía turístico de la ciudad...";
 
     const messages = [
       { role: 'system', content: siteSpecificPrompt },
@@ -29,7 +57,7 @@ const Chatbot = () => {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer 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`,
+          'Authorization': `Bearer sk-svcacct-fqlrQB20qaLHb_cLqgsAUUfZ1wS7S3W8OuD9AE7_-qBeHKJTrmzmxDLt-sbQF3ViT3BlbkFJ18tp28IxWo-p77QT8Nlxxx_wti2ajwDnyzcUxeMscLcboDFTDFurnlnEvSqjsJcA`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -45,7 +73,7 @@ const Chatbot = () => {
         throw new Error('Invalid response from OpenAI');
       }
       
-      const botMessage = data.choices[0].message.content.trim();
+      let botMessage = formatResponse(data.choices[0].message.content.trim());
       
       setConversation((prev) => [...prev, { sender: 'bot', message: botMessage }]);
     } catch (error) {
@@ -67,11 +95,13 @@ const Chatbot = () => {
 
   return (
     <div className="chatbot-container">
-      <div className="chat-header">GoTrip Chat</div>
+      <div className="chat-header">GoTrip BOT</div>
       <div className="conversation-box">
         {conversation.map((entry, index) => (
           <div key={index} className={`message ${entry.sender}-message`}>
-            <p>{entry.message}</p>
+            <div className="message-bubble">
+              <p dangerouslySetInnerHTML={{ __html: entry.message }}></p>
+            </div>
           </div>
         ))}
         {loading && <div className="bot-message message"><p>GoTripBot está escribiendo...</p></div>}
